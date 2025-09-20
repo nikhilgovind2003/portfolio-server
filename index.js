@@ -5,30 +5,41 @@ const { sequelize, User } = require('./models');
 const { verifyDatabaseConnection } = require('./db');
 const routes = require('./routes/index.js');
 const logger = require('./config/logger.js');
+const handleError = require('./middlewares/handleErrorMiddleware.js');
 
 const app = express();
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://yourdomain.com'] // Replace with your production domain
+    : ['http://localhost:3000', 'http://localhost:5173'], // Development origins
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use('/uploads', express.static('uploads'));
 
 app.use('/api', routes);
 
-app.use((err, req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.error(err);
-  res.status(500).json({ error: 'Internal Server Error' });
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
+// Error handling middleware (must be last)
+app.use(handleError);
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the API');
-     logger.info({
-      message: `${req.method} ${req.originalUrl}`,
-      statusCode: res.statusCode
-    });
-}
-);
 
-// app.use(errorMiddleware);
+
+
 
 async function bootstrap() {
   try {

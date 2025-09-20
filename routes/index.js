@@ -1,40 +1,51 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const logger = require("../config/logger");
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
-const router = express.Router();
+function loadRoutes(dirPath, baseRoute = '') {
+  const router = express.Router({ mergeParams: true });
+  console.log(`📂 Reading directory: ${dirPath}, baseRoute: ${baseRoute}`);
 
-function loadRoutes(dirPath, baseRoute = "") {
-  const files = fs.readdirSync(dirPath);
+  try {
+    const files = fs.readdirSync(dirPath);
+    files.forEach((file) => {
+      const fullPath = path.join(dirPath, file);
+      const stat = fs.statSync(fullPath);
 
-  files.forEach((file) => {
-    const fullPath = path.join(dirPath, file);
-    const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        const dirName = file.toLowerCase();
+        const newBaseRoute = path.posix.join(baseRoute, dirName); // <--- FIXED
 
-    if (stat.isDirectory()) {
-      // Recursively load routes in subdirectories
-      const newBaseRoute = `${baseRoute}/${file}`;
-      loadRoutes(fullPath, newBaseRoute);
-    } else if (file !== "index.js" && file.endsWith(".js")) {
-      const routeName = path.basename(file, ".js");
-      const routePath = `${baseRoute}/${routeName}`
-        .replace(/\\/g, "/") // For Windows paths
-        .replace(/([A-Z])/g, "-$1")
-        .toLowerCase();
+        const subRouter = loadRoutes(fullPath, newBaseRoute);
+        router.use(`/${dirName}`, subRouter); // Mount subdir
+        console.log(`✅ Mounted sub-router: /${dirName} -> /api/${newBaseRoute}`);
+      } else if (file !== 'index.js' && file.endsWith('.js')) {
+        const routeName = path.basename(file, '.js')
+          .replace(/([a-z])([A-Z])/g, '$1-$2')
+          .toLowerCase();
 
-      try {
-        const routeModule = require(fullPath);
-        router.use(routePath, routeModule);
-        logger.info(`✅ Mounted route: ${routePath}`);
-      } catch (error) {
-        logger.error(`❌ Failed to load route ${routePath}:`, error.message);
+        const routePath = `/${routeName}`; // <--- Avoid using baseRoute again here
+        console.log(`🔍 Processing file: ${fullPath}, routePath: ${baseRoute}${routePath}`);
+
+        try {
+          const routeModule = require(fullPath);
+          if (typeof routeModule === 'function' || routeModule instanceof express.Router) {
+            router.use(routePath, routeModule);
+            console.log(`✅ Loaded route: /api${baseRoute}${routePath}`);
+          } else {
+            console.error(`❌ Invalid route module at ${fullPath}: Not a router or middleware function`);
+          }
+        } catch (error) {
+          console.error(`❌ Error loading route ${routePath}: ${error.message}`);
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error(`❌ Error reading directory ${dirPath}: ${error.message}`);
+  }
+
+  return router;
 }
 
-// Start loading from the current directory (where index.js is)
-loadRoutes(__dirname);
 
-module.exports = router;
+module.exports = loadRoutes(__dirname);

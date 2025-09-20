@@ -1,9 +1,24 @@
-module.export = function handleErrorMiddleware(err, req, res, next) {
-    req.statusCode = req.statusCode || 500;
-    req.statusMessage = req.statusMessage || 'Internal Server Error';
-    res.status(req.statusCode).json({
-        success: false,
-        message: err.message || 'Internal Server Error',
-    });
-}
+const logger = require("../config/logger");
 
+module.exports = (err, req, res, next) => {
+    const statusCode =  err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+
+    const payload = {
+        success: false,
+        message,
+    };
+
+    if (process.env.NODE_ENV !== 'production' && err.stack) {
+        payload.stack = err.stack;
+    }
+
+    logger.error({
+        message: `${req.method} ${req.originalUrl} - ${message}`,
+        statusCode
+    });
+    
+    res.status(statusCode).json(payload);
+};
+
+ 
