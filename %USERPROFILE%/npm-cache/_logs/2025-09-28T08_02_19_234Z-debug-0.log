@@ -7,8 +7,8 @@
 6 silly config load:file:C:\Users\govin\AppData\Roaming\npm\etc\npmrc
 7 verbose title npm ls
 8 verbose argv "ls" "--depth" "0" "--package-lock-only" "--omit" "dev" "--json"
-9 verbose logfile logs-max:10 dir:c:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-27T16_55_31_524Z-
-10 verbose logfile c:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-27T16_55_31_524Z-debug-0.log
+9 verbose logfile logs-max:10 dir:c:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-28T08_02_19_234Z-
+10 verbose logfile c:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-28T08_02_19_234Z-debug-0.log
 11 silly logfile start cleaning logs, removing 1 files
 12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
 13 silly logfile done cleaning log files

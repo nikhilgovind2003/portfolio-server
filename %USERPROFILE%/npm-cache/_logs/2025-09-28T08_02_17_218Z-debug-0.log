@@ -7,7 +7,7 @@
 6 silly config load:file:C:\Users\govin\AppData\Roaming\npm\etc\npmrc
 7 verbose title npm run dev
 8 verbose argv "run" "dev"
-9 verbose logfile logs-max:10 dir:C:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-27T17_02_50_615Z-
-10 verbose logfile C:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-27T17_02_50_615Z-debug-0.log
+9 verbose logfile logs-max:10 dir:C:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-28T08_02_17_218Z-
+10 verbose logfile C:\Users\govin\OneDrive\Documents\Desktop\portfolio\server\%USERPROFILE%\npm-cache\_logs\2025-09-28T08_02_17_218Z-debug-0.log
 11 silly logfile start cleaning logs, removing 1 files
 12 silly logfile done cleaning log files
