@@ -30,13 +30,5 @@ module.exports = (sequelize) => {
   );
 
   // Define associations
-  Skills.associate = (models) => {
-    Skills.belongsToMany(models.Projects, {
-      through: "ProjectSkills",
-      foreignKey: "skill_id",
-      otherKey: "project_id",
-      as: "projects",
-    });
-  };
   return Skills;
 };

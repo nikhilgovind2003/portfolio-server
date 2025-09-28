@@ -22,8 +22,13 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       description: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
+      },
+      skills: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
       },
       status: {
         type: DataTypes.BOOLEAN,
@@ -41,17 +46,6 @@ module.exports = (sequelize) => {
     }
     
   );
-
-  // Define associations
-  Projects.associate = (models) => {
-    Projects.belongsToMany(models.Skills, {
-      through: "ProjectSkills",
-      foreignKey: "project_id",
-      otherKey: "skill_id",
-      as: "skills",
-    });
-    
-  };
 
   return Projects;
 };

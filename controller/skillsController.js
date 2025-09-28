@@ -11,18 +11,20 @@ class Skills {
             next(error);
         }
     }
+
     static async create(req, res, next) {
         try {
-            const { skills, status, sort_order } = req.body;
+            const dataModel = req.body;
 
-            const existingSkil = await DataBase.findOne({ where: { skills } });
+            console.log(dataModel)
+            const existingSkil = await DataBase.findOne({ where: { skills: dataModel.skills } });
 
             if (existingSkil) {
                 return res.status(400).json({ message: "Skill already exists" });
             }
 
 
-            const newSkill = await DataBase.create({ skills, status, sort_order });
+            const newSkill = await DataBase.create({ ...dataModel });
             res.status(201).json(newSkill);
         } catch (error) {
             next(error);

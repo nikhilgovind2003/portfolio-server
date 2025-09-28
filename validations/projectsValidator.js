@@ -1,47 +1,49 @@
-const { body, param } = require('express-validator');
+const { body, param } = require("express-validator");
+const { options } = require("pg/lib/defaults");
 
 // Validation for creating a new project
 const createProjectValidation = [
-  body('title')
+  body("title")
     .trim()
     .notEmpty()
-    .withMessage('Project title is required')
+    .withMessage("Project title is required")
     .isLength({ min: 2, max: 200 })
-    .withMessage('Project title must be between 2 and 200 characters'),
+    .withMessage("Project title must be between 2 and 200 characters"),
 
-  body('description')
+  body("description")
     .trim()
     .notEmpty()
-    .withMessage('Project description is required')
+    .withMessage("Project description is required")
     .isLength({ min: 10, max: 1000 })
-    .withMessage('Project description must be between 10 and 1000 characters'),
+    .withMessage("Project description must be between 10 and 1000 characters"),
 
-  body('media_alt')
+  body("media_path").trim().notEmpty().withMessage("Media path is ssrequired"),
+
+  body("media_alt")
     .trim()
     .notEmpty()
-    .withMessage('Media alt text is required')
+    .withMessage("Media alt text is required")
     .isLength({ min: 2, max: 100 })
-    .withMessage('Media alt text must be between 2 and 100 characters'),
+    .withMessage("Media alt text must be between 2 and 100 characters"),
 
-  body('status')
+  body("status")
     .notEmpty()
-    .withMessage('Status is required')
+    .withMessage("Status is required")
     .isBoolean()
-    .withMessage('Status must be true or false'),
+    .withMessage("Status must be true or false"),
 
-  body('sort_order')
+  body("sort_order")
     .notEmpty()
-    .withMessage('Sort order is required')
+    .withMessage("Sort order is required")
     .isInt({ min: 0 })
-    .withMessage('Sort order must be a positive integer'),
+    .withMessage("Sort order must be a positive integer"),
 
-  body('skills')
-    .optional()
+  body("skills")
     .isArray()
-    .withMessage('Skills must be an array')
+    .withMessage("Skills must be an array")
     .custom((value) => {
-      if (value && !value.every(id => Number.isInteger(id))) {
-        throw new Error('All skill IDs must be integers');
+      if (value && !value.every((id) => Number.isInteger(id))) {
+        throw new Error("All skill IDs must be integers");
       }
       return true;
     }),
@@ -49,47 +51,53 @@ const createProjectValidation = [
 
 // Validation for updating a project
 const updateProjectValidation = [
-  param('id')
+  param("id")
     .notEmpty()
-    .withMessage('Project ID is required')
+    .withMessage("Project ID is required")
     .isInt()
-    .withMessage('Project ID must be an integer'),
+    .withMessage("Project ID must be an integer"),
 
-  body('title')
+  body("title")
     .optional()
     .trim()
     .isLength({ min: 2, max: 200 })
-    .withMessage('Project title must be between 2 and 200 characters'),
+    .withMessage("Project title must be between 2 and 200 characters"),
 
-  body('description')
+  body("description")
     .optional()
     .trim()
     .isLength({ min: 10, max: 1000 })
-    .withMessage('Project description must be between 10 and 1000 characters'),
+    .withMessage("Project description must be between 10 and 1000 characters"),
 
-  body('media_alt')
+  body("media_path")
+    .trim()
+    .optional()
+    .notEmpty()
+    .withMessage("Media path is required"),
+
+  body("media_alt")
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage('Media alt text must be between 2 and 100 characters'),
+    .withMessage("Media alt text must be between 2 and 100 characters"),
 
-  body('status')
+  body("status")
     .optional()
     .isBoolean()
-    .withMessage('Status must be true or false'),
+    .withMessage("Status must be true or false"),
 
-  body('sort_order')
+  body("sort_order")
     .optional()
     .isInt({ min: 0 })
-    .withMessage('Sort order must be a positive integer'),
+    .withMessage("Sort order must be a positive integer"),
 
-  body('skills')
+  body("skills")
     .optional()
     .isArray()
-    .withMessage('Skills must be an array')
+    .withMessage("Skills must be an array")
     .custom((value) => {
-      if (value && !value.every(id => Number.isInteger(id))) {
-        throw new Error('All skill IDs must be integers');
+      if (value && !value.every((id) => Number.isInteger(id))) {
+        throw new Error("All skill IDs must be integers");
       }
       return true;
     }),
@@ -97,20 +105,20 @@ const updateProjectValidation = [
 
 // Validation for managing project-skill associations
 const projectSkillValidation = [
-  param('id')
+  param("id")
     .notEmpty()
-    .withMessage('Project ID is required')
+    .withMessage("Project ID is required")
     .isInt()
-    .withMessage('Project ID must be an integer'),
+    .withMessage("Project ID must be an integer"),
 
-  body('skillIds')
+  body("skillIds")
     .notEmpty()
-    .withMessage('Skill IDs are required')
+    .withMessage("Skill IDs are required")
     .isArray()
-    .withMessage('Skill IDs must be an array')
+    .withMessage("Skill IDs must be an array")
     .custom((value) => {
-      if (!value.every(id => Number.isInteger(id))) {
-        throw new Error('All skill IDs must be integers');
+      if (!value.every((id) => Number.isInteger(id))) {
+        throw new Error("All skill IDs must be integers");
       }
       return true;
     }),

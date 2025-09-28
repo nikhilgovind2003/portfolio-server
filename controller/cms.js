@@ -33,9 +33,12 @@ class CmsController {
       const cmsItem = await dataBase.findOne();
       if (!cmsItem) return res.status(404).json({ error: "CMS item not found" });
 
-      // Replace old file if new uploaded
-      const newFilePath = req.replaceFile(cmsItem.media_path, req);
 
+      console.log("req.file: ", req.file)
+      const newFilePath = req?.file?.path || cmsItem.media_path;
+
+
+      
       // Update fields dynamically
       const updateFields = [
         'super_title', 'title', 'description', 'btn_one_text', 'btn_one_link',

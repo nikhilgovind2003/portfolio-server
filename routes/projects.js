@@ -1,20 +1,22 @@
 const router = require("express").Router();
 const ProjectsController = require("../controller/projectsController");
-const createUploadMiddleware = require("../middlewares/multerMiddleware");
+const uploadImage = require("../middlewares/multerMiddleware");
 const {
   createProjectValidation,
   updateProjectValidation,
   projectSkillValidation,
 } = require("../validations/projectsValidator");
 
-// Dynamic upload middleware
-const { upload, replaceFile } = createUploadMiddleware("projects");
 
-// Attach replaceFile to req for controller
-router.use((req, res, next) => {
-  req.replaceFile = replaceFile;
-  next();
-});
+
+// Create a new project
+router.post(
+  "/",
+  createProjectValidation,
+  uploadImage("projects", "media_path"),
+  ProjectsController.create
+);
+
 
 // Get all projects
 router.get("/", ProjectsController.getAll);
@@ -22,19 +24,13 @@ router.get("/", ProjectsController.getAll);
 // Get a single project
 router.get("/:id", ProjectsController.getById);
 
-// Create a new project
-router.post(
-  "/",
-  createProjectValidation,
-  upload.single("media_path"),
-  ProjectsController.create
-);
+
 
 // Update a project
 router.put(
   "/:id",
   updateProjectValidation,
-  upload.single("media_path"),
+  uploadImage("projects", "media_path"),
   ProjectsController.update
 );
 
