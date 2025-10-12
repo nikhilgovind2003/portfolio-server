@@ -25,11 +25,7 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      skills: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: false,
-      defaultValue: [],
-      },
+      
       status: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -43,9 +39,19 @@ module.exports = (sequelize) => {
       tableName: "projects",
       timestamps: true,
       underscored: true,
-    }
-    
+    },
   );
 
+
+  Projects.associate = (models) => {
+  Projects.belongsToMany(models.Technology, {
+    through: "ProjectTechnologies",
+    as: "technologies",
+    foreignKey: "projectId",
+  });
+};
+
+  
+  
   return Projects;
 };

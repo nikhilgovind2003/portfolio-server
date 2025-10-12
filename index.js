@@ -6,7 +6,7 @@ const { verifyDatabaseConnection } = require('./db');
 const routes = require('./routes/index.js');
 const logger = require('./config/logger.js');
 const handleError = require('./middlewares/handleErrorMiddleware.js');
-
+const morgan = require("morgan")
 const app = express();
 
 
@@ -23,7 +23,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
-
+app.use(morgan("dev"))
 app.use('/api', routes);
 
 // Health check endpoint

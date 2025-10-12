@@ -6,21 +6,13 @@ class CmsController {
   static async index(req, res, next) {
     try {
 
+      const cmsData = await dataBase.findOne();
+      if (!cmsData) return res.status(404).json({ error: "CMS data not found" });
 
-      const [
-        cms = [],
-        project = [],
-        skills = [],
-      ] = await Promise.all([
-        dataBase.findAll(),
-        models.Projects.findAll({ order: [['sort_order', 'ASC']] }),
-        models.Skills.findAll({ order: [['sort_order', 'ASC']] })
-      ])
-
-
-      const cmsData = {
-        cms, project, skills
-      }
+      return res.json({
+        message: "CMS data retrieved successfully",
+        data: cmsData
+      })
 
       res.status(200).json(cmsData);
     } catch (err) {

@@ -1,8 +1,10 @@
 const router = require("express").Router();
 const SkillsController = require("../controller/skillsController");
+const auth = require("../middlewares/authMiddleware");
 const { createSkillValidation, updateSkillValidation } = require("../validations/skillsValidator");
 
 
+router.use(auth)
 // Get all skills
 router.get("/", SkillsController.getAll);
 

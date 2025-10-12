@@ -3,5 +3,5 @@ node_modules
 error.log
 combined.log
 logs/
-
+%USERPROFILE%
 uploads/

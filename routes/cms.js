@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const CmsController = require("../controller/cms.js");
+const auth = require("../middlewares/authMiddleware.js")
 const {
   updateCmsRules,
   validateCms,
@@ -7,7 +8,7 @@ const {
 
 const uploadImage = require("../middlewares/multerMiddleware.js");
 
-router.get("/", CmsController.index);
+router.get("/", auth, CmsController.index);
 
 // Update CMS route
 router.put(
@@ -19,3 +20,4 @@ router.put(
 );
 
 module.exports = router;
+
