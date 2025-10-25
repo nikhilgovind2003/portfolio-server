@@ -41,7 +41,7 @@ class ProjectsController {
         include: [
           {
             model: Technology,
-            as: "technologies",
+            as: "techList",
             attributes: ["name"],
             through: { attributes: [] }
           },
@@ -116,7 +116,7 @@ class ProjectsController {
 
       // ✅ Step 3: Fetch full project with related technologies
       const projectWithTech = await Projects.findByPk(newProject.id, {
-        include: [{ model: Technology, as: "technologies" }],
+        include: [{ model: Technology, as: "techList" }],
       });
 
       return res.status(201).json({

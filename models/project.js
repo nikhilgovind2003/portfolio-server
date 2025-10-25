@@ -53,7 +53,7 @@ module.exports = (sequelize) => {
       through: "ProjectTechnologies",
       foreignKey: "project_id",
       otherKey: "technology_id",
-      as: "technologies",
+      as: "techList",
     });
   };
 
