@@ -6,7 +6,17 @@ class WebController {
       const [cmsData = [], projectsData = [], skillsData = []] =
         await Promise.all([
           models.Cms.findOne(),
-          models.Projects.findAll({ order: [["sort_order", "ASC"]] }),
+          models.Projects.findAll({
+            order: [["sort_order", "ASC"]],
+            include: [
+              {
+                model: models.Technology,
+                as: "techList",
+                attributes: ["name"],
+                through: { attributes: [] },
+              },
+            ],
+          }),
           models.Skills.findAll({ order: [["sort_order", "ASC"]] }),
         ]);
 
@@ -19,12 +29,10 @@ class WebController {
         },
       });
     } catch (error) {
-        res.status(500).json({ error: "An error occurred while fetching data." });
-        next(error);
+      res.status(500).json({ error: "An error occurred while fetching data." });
+      next(error);
     }
   }
 }
-
-
 
 module.exports = WebController;

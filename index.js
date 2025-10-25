@@ -21,7 +21,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use('/uploads', express.static('uploads'));
 app.use(morgan("dev"))
 app.use('/api', routes);
@@ -37,7 +37,6 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware (must be last)
 app.use(handleError);
-
 
 
 

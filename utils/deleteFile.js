@@ -1,18 +1,26 @@
-export async function deleteFile(relativePath) {
+const path= require("path")
+const fs = require("fs")
+
+export async function deleteFile(filePath) {
+    if (!filePath) return false;
     try {
-      if (!relativePath) return;
+      const absolutePath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "uploads",
+        filePath.replace("/uploads/", "")
+      );
 
-      const filePath = path.join(__dirname, "..", relativePath);
+      console.log("absolutePath: ", absolutePath);
+      await fs.unlink(absolutePath);
 
-      // Check if file exists before deleting
-      try {
-        await fs.access(filePath);
-        await fs.unlink(filePath);
-        console.log(`Deleted file: ${filePath}`);
-      } catch (err) {
-        console.log(`File not found or already deleted: ${filePath}`);
+      console.info(`Deleted file: ${absolutePath}`);
+      return true; // ✅ success
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        console.error(`Failed to delete file ${filePath}: ${error.message}`);
       }
-    } catch (err) {
-      console.error("Error deleting file:", err);
+      return false; // ✅ failed but handled
     }
   }

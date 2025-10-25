@@ -8,7 +8,7 @@ const {
 
 const uploadImage = require("../middlewares/multerMiddleware.js");
 
-router.get("/", auth, CmsController.index);
+router.get("/", CmsController.index);
 
 // Update CMS route
 router.put(

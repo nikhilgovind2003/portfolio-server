@@ -13,6 +13,14 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      media_path: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      media_alt: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       status: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -28,8 +36,6 @@ module.exports = (sequelize) => {
       underscored: true,
     }
   );
-
-
 
   // Define associations
   return Skills;

@@ -20,6 +20,24 @@ class CmsController {
     }
   }
 
+
+  static async create(req, res, next) {
+    try {
+      
+      const data = req.body
+
+      console.log(req.body)
+      const cmsData = await dataBase.create(req.body)
+
+      return res.json({
+        success: true,
+        cmsData
+      })
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async update(req, res, next) {
     try {
       const cmsItem = await dataBase.findOne();
