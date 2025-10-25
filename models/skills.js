@@ -29,6 +29,8 @@ module.exports = (sequelize) => {
     }
   );
 
+
+
   // Define associations
   return Skills;
 };

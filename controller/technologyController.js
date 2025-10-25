@@ -16,7 +16,7 @@ class TechnologyController {
         });
       }
 
-      const tech = await Technology.create({ name });
+      const tech = await Technology.create(req.body);
 
       return res.status(201).json({
         success: true,
@@ -33,17 +33,17 @@ class TechnologyController {
     }
   }
 
-  // Get all Technologies
+  // Get all Technology
   static async index(req, res) {
     try {
-      const technologies = await Technology.findAll();
+      const Technologies = await Technology.findAll();
 
       return res.status(200).json({
         success: true,
-        data: technologies,
+        data: Technologies,
       });
     } catch (error) {
-      console.error("Error fetching technologies:", error);
+      console.error("Error fetching Technology:", error);
       return res.status(500).json({
         success: false,
         message: "Something went wrong",

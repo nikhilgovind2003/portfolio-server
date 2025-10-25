@@ -14,7 +14,7 @@ function validate(req, res, next) {
 
 // Routes
 
-// Get all technologies
+// Get all Technology
 router.get("/", TechnologyController.index);
 
 

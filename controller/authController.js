@@ -56,7 +56,6 @@ class AuthController {
       res.status(201).json({
         success: true,
         result: user,
-        token
       });
     } catch (error) {
       next(error)
