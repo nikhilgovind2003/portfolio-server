@@ -14,7 +14,7 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://yourdomain.com'] // Replace with your production domain
-    : ['http://localhost:3000', 'http://localhost:5173'], // Development origins
+    : ['http://localhost:3000', 'http://localhost:8080'], // Development origins
   credentials: true,
   optionsSuccessStatus: 200
 };

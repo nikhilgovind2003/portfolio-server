@@ -7,7 +7,7 @@ const {
   updateSkillValidation,
 } = require("../validations/skillsValidator");
 
-router.use(auth);
+// router.use(auth);
 // Get all skills
 router.get("/", SkillsController.getAll);
 

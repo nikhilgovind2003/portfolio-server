@@ -14,7 +14,6 @@ class CmsController {
         data: cmsData
       })
 
-      res.status(200).json(cmsData);
     } catch (err) {
       next(err);
     }

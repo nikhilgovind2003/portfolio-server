@@ -1,6 +1,4 @@
 const { DataTypes } = require("sequelize");
-
-
 module.exports = (sequelize) => {
   const Projects = sequelize.define(
     "Projects",
@@ -26,11 +24,17 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      github_link: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      project_link: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       technologies: {
-        type: DataTypes.INTEGER,
-        Reference: {
-          
-        }
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
       status: {
         type: DataTypes.BOOLEAN,

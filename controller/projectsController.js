@@ -75,9 +75,12 @@ class ProjectsController {
         title,
         description,
         media_alt,
+        technologies,
         status,
         sort_order,
         technology_ids,
+        project_link,
+        github_link,
       } = req.body;
       const media_path = req.file?.path ?? null;
 
@@ -91,6 +94,9 @@ class ProjectsController {
         description,
         media_path,
         media_alt,
+        project_link,
+        technologies,
+        github_link,
         status: status ?? true,
         sort_order: sort_order ?? 0,
       });
@@ -134,7 +140,8 @@ class ProjectsController {
   static async update(req, res, next) {
     try {
       const { id } = req.params;
-      const { title, description, media_alt, status, sort_order, skills } =
+      const { title, description, media_alt, status, technologies, sort_order, project_link,
+        github_link } =
         req.body;
 
       const project = await Projects.findByPk(id);
@@ -161,6 +168,9 @@ class ProjectsController {
         title: title || project.title,
         description: description || project.description,
         media_alt: media_alt || project.media_alt,
+        project_link: project_link|| project.project_link,
+        github_link: github_link || project.github_link,
+        technologies: technologies|| project.technologies,
         status:
           status !== undefined
             ? status === "true" || status === true

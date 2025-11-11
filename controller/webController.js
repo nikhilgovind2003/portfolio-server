@@ -17,7 +17,10 @@ class WebController {
               },
             ],
           }),
-          models.Skills.findAll({ order: [["sort_order", "ASC"]] }),
+          models.Skills.findAll({
+            order: [["sort_order", "ASC"]],
+            where: { status: true },
+          }),
         ]);
 
       res.json({

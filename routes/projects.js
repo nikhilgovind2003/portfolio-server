@@ -8,7 +8,7 @@ const {
   projectSkillValidation,
 } = require("../validations/projectsValidator");
 
-router.use(auth)
+// router.use(auth)
 // Create a new project
 router.post(
   "/",

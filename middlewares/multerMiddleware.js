@@ -32,7 +32,7 @@ const uploadImage = (routerFileName, fieldName, maxCount = 1) => {
   const multerInstance = multer({
     storage: storage(routerFileName),
     fileFilter: (req, file, cb) => {
-      const allowedTypes = /jpeg|jpg|png|gif/;
+      const allowedTypes = /jpeg|jpg|png|gif|webp/;
       const extname = allowedTypes.test(
         path.extname(file.originalname).toLowerCase()
       );
