@@ -1,7 +1,36 @@
 const { body, param } = require("express-validator");
-const { options } = require("pg/lib/defaults");
 
-// Validation for creating a new project
+// Helper: Validate technologies array
+const validateTechnologies = body("technologies")
+  .optional()
+  .custom((value) => {
+    let techArray = value;
+
+    // If value is string (from form-data), parse it
+    if (typeof value === "string") {
+      try {
+        techArray = JSON.parse(value);
+      } catch {
+        throw new Error("Technologies must be a valid JSON array");
+      }
+    }
+
+    // Must be an array
+    if (!Array.isArray(techArray)) {
+      throw new Error("Technologies must be an array");
+    }
+
+    // Each element must be integer
+    if (!techArray.every((id) => Number.isInteger(id))) {
+      throw new Error("All technology IDs must be integers");
+    }
+
+    return true;
+  });
+
+// ===============================
+// 🚀 CREATE PROJECT VALIDATION
+// ===============================
 const createProjectValidation = [
   body("title")
     .trim()
@@ -14,17 +43,17 @@ const createProjectValidation = [
     .trim()
     .notEmpty()
     .withMessage("Project description is required")
-    .isLength({ min: 10, max: 1000 })
-    .withMessage("Project description must be between 10 and 1000 characters"),
+    .isLength({ min: 10, max: 2000 })
+    .withMessage("Project description must be between 10 and 2000 characters"),
 
-  body("media_path").trim().notEmpty().withMessage("Media path is ssrequired"),
+  // media_path is removed because it comes from req.file
 
   body("media_alt")
     .trim()
     .notEmpty()
     .withMessage("Media alt text is required")
     .isLength({ min: 2, max: 100 })
-    .withMessage("Media alt text must be between 2 and 100 characters"),
+    .withMessage("Media alt must be 2–100 characters"),
 
   body("status")
     .notEmpty()
@@ -38,18 +67,12 @@ const createProjectValidation = [
     .isInt({ min: 0 })
     .withMessage("Sort order must be a positive integer"),
 
-  body("skills")
-    .isArray()
-    .withMessage("Skills must be an array")
-    .custom((value) => {
-      if (value && !value.every((id) => Number.isInteger(id))) {
-        throw new Error("All skill IDs must be integers");
-      }
-      return true;
-    }),
+  validateTechnologies,
 ];
 
-// Validation for updating a project
+// ===============================
+// 🚀 UPDATE PROJECT VALIDATION
+// ===============================
 const updateProjectValidation = [
   param("id")
     .notEmpty()
@@ -66,20 +89,16 @@ const updateProjectValidation = [
   body("description")
     .optional()
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage("Project description must be between 10 and 1000 characters"),
+    .isLength({ min: 10, max: 2000 })
+    .withMessage("Project description must be between 10 and 2000 characters"),
 
-  body("media_path")
-    .trim()
-    .optional()
-    .notEmpty()
-    .withMessage("Media path is required"),
+  // media_path removed (file upload)
 
   body("media_alt")
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage("Media alt text must be between 2 and 100 characters"),
+    .withMessage("Media alt must be 2–100 characters"),
 
   body("status")
     .optional()
@@ -91,37 +110,18 @@ const updateProjectValidation = [
     .isInt({ min: 0 })
     .withMessage("Sort order must be a positive integer"),
 
-  body("skills")
-    .optional()
-    .isArray()
-    .withMessage("Skills must be an array")
-    .custom((value) => {
-      if (value && !value.every((id) => Number.isInteger(id))) {
-        throw new Error("All skill IDs must be integers");
-      }
-      return true;
-    }),
+  validateTechnologies,
 ];
 
-// Validation for managing project-skill associations
+// ===============================
+// 🚀 VALIDATION FOR PROJECT–TECH RELATIONS
+// ===============================
 const projectSkillValidation = [
   param("id")
     .notEmpty()
     .withMessage("Project ID is required")
     .isInt()
     .withMessage("Project ID must be an integer"),
-
-  body("skillIds")
-    .notEmpty()
-    .withMessage("Skill IDs are required")
-    .isArray()
-    .withMessage("Skill IDs must be an array")
-    .custom((value) => {
-      if (!value.every((id) => Number.isInteger(id))) {
-        throw new Error("All skill IDs must be integers");
-      }
-      return true;
-    }),
 ];
 
 module.exports = {

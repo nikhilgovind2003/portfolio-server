@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+
 module.exports = (sequelize) => {
   const Projects = sequelize.define(
     "Projects",
@@ -10,7 +11,6 @@ module.exports = (sequelize) => {
       },
       media_path: {
         type: DataTypes.TEXT,
-        allowNull: true,
       },
       media_alt: {
         type: DataTypes.STRING,
@@ -26,23 +26,17 @@ module.exports = (sequelize) => {
       },
       github_link: {
         type: DataTypes.TEXT,
-        allowNull: true,
       },
       project_link: {
         type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      technologies: {
-        type: DataTypes.TEXT,
-        allowNull: true,
       },
       status: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
+        defaultValue: true,
       },
       sort_order: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        defaultValue: 0,
       },
     },
     {
@@ -54,10 +48,10 @@ module.exports = (sequelize) => {
 
   Projects.associate = (models) => {
     Projects.belongsToMany(models.Technology, {
-      through: "ProjectTechnologies",
+      through: models.ProjectTechnology,
       foreignKey: "project_id",
       otherKey: "technology_id",
-      as: "techList",
+      as: "technologies_list",
     });
   };
 

@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 
-// models/Technology.js
 module.exports = (sequelize) => {
   const Technology = sequelize.define(
     "Technology",
@@ -16,12 +15,10 @@ module.exports = (sequelize) => {
       },
       status: {
         type: DataTypes.BOOLEAN,
-        allowNull: true,
         defaultValue: true,
       },
       sort_order: {
         type: DataTypes.INTEGER,
-        allowNull: true,
         defaultValue: 0,
       },
     },
@@ -31,13 +28,12 @@ module.exports = (sequelize) => {
     }
   );
 
-
   Technology.associate = (models) => {
     Technology.belongsToMany(models.Projects, {
-      through: "ProjectTechnologies",
+      through: models.ProjectTechnology,
       foreignKey: "technology_id",
       otherKey: "project_id",
-      as: "projects",
+      as: "projects_list",
     });
   };
 

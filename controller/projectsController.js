@@ -2,39 +2,37 @@ const path = require("path");
 const fs = require("fs").promises;
 const logger = require("../config/logger");
 
-const {
-  Projects,
-  Skills,
-  Technology,
-  ProjectTechnologies,
-} = require("../models");
-const technology = require("../models/technology");
+const { Projects, Technology } = require("../models");
 
 class ProjectsController {
+  // ======================================================
+  // DELETE FILE
+  // ======================================================
   static async deleteFile(filePath) {
     if (!filePath) return false;
+
     try {
       const absolutePath = path.join(
         __dirname,
         "..",
         "..",
-        "uploads",
-        filePath.replace("/uploads/", "")
+        filePath.replace(/\\/g, "/")
       );
 
-      console.log("absolutePath: ", absolutePath);
       await fs.unlink(absolutePath);
-
       logger.info(`Deleted file: ${absolutePath}`);
-      return true; // ✅ success
+      return true;
     } catch (error) {
       if (error.code !== "ENOENT") {
-        logger.error(`Failed to delete file ${filePath}: ${error.message}`);
+        logger.error(`Error deleting file ${filePath}: ${error.message}`);
       }
-      return false; // ✅ failed but handled
+      return false;
     }
   }
 
+  // ======================================================
+  // GET ALL PROJECTS WITH TECHNOLOGIES
+  // ======================================================
   static async getAll(req, res, next) {
     try {
       const projects = await Projects.findAll({
@@ -42,22 +40,36 @@ class ProjectsController {
         include: [
           {
             model: Technology,
-            as: "techList",
-            attributes: ["name"],
-            through: { attributes: [] }
+            as: "technologies_list",
+            attributes: ["id", "name", "status"],
+            through: { attributes: [] },
           },
         ],
       });
+
       res.json(projects);
     } catch (error) {
       next(error);
     }
   }
 
+  // ======================================================
+  // GET PROJECT BY ID WITH TECHNOLOGIES
+  // ======================================================
   static async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const project = await Projects.findByPk(id);
+
+      const project = await Projects.findByPk(id, {
+        include: [
+          {
+            model: Technology,
+            as: "technologies_list",
+            attributes: ["id", "name", "status"],
+            through: { attributes: [] },
+          },
+        ],
+      });
 
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -69,67 +81,65 @@ class ProjectsController {
     }
   }
 
+  // ======================================================
+  // CREATE PROJECT
+  // ======================================================
   static async create(req, res, next) {
     try {
       const {
         title,
         description,
         media_alt,
+        project_link,
+        github_link,
         technologies,
         status,
         sort_order,
-        technology_ids,
-        project_link,
-        github_link,
       } = req.body;
+
       const media_path = req.file?.path ?? null;
 
-      if (!title || !description || !media_alt) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
+      console.log("media_path")
+      // Convert technology input to array of IDs
+      const techArray = technologies
+        ? Array.isArray(technologies)
+          ? technologies.map(Number)
+          : JSON.parse(technologies).map(Number)
+        : [];
 
-      // ✅ Step 1: Create project
+      // Create project
       const newProject = await Projects.create({
         title,
         description,
         media_path,
         media_alt,
         project_link,
-        technologies,
         github_link,
         status: status ?? true,
         sort_order: sort_order ?? 0,
       });
 
-      // ✅ Step 2: Attach technologies (only if provided)
-      if (
-        technology_ids &&
-        Array.isArray(technology_ids) &&
-        technology_ids.length > 0
-      ) {
-        const validTechnologies = await Technology.findAll({
-          where: { id: technology_ids },
-        });
-
-        if (validTechnologies.length !== technology_ids.length) {
-          return res
-            .status(400)
-            .json({ message: "Invalid technology IDs provided" });
-        }
-
-        // This automatically inserts into `project_technologies`
-        await newProject.setTechnologies(technology_ids);
+      // Save technologies in pivot table
+      // Safe to insert into pivot table
+      if (techArray.length > 0) {
+        await newProject.setTechnologies_list(techArray);
       }
 
-      // ✅ Step 3: Fetch full project with related technologies
-      const projectWithTech = await Projects.findByPk(newProject.id, {
-        include: [{ model: Technology, as: "techList" }],
+      const fullData = await Projects.findByPk(newProject.id, {
+        include: [
+          {
+            model: Technology,
+            as: "technologies_list",
+            attributes: ["id", "name", "status"],
+            through: { attributes: [] },
+          },
+        ],
       });
 
       return res.status(201).json({
         success: true,
         message: "Project created successfully",
-        data: projectWithTech,
+        data: fullData,
       });
     } catch (error) {
       console.error("Error creating project:", error);
@@ -137,189 +147,130 @@ class ProjectsController {
     }
   }
 
+  // ======================================================
+  // UPDATE PROJECT
+  // ======================================================
   static async update(req, res, next) {
     try {
       const { id } = req.params;
-      const { title, description, media_alt, status, technologies, sort_order, project_link,
-        github_link } =
-        req.body;
+
+      const {
+        title,
+        description,
+        media_alt,
+        technologies,
+        status,
+        sort_order,
+        project_link,
+        github_link,
+      } = req.body;
 
       const project = await Projects.findByPk(id);
+
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Only delete old file if a new file is uploaded
+      // FILE HANDLING
       if (req.file) {
-        // Save old path before overwriting
-        const oldFilePath = project.media_path;
-
-        // Set new file path
+        const oldFile = project.media_path;
         project.media_path = req.file.path;
 
-        // Delete old file
-        if (oldFilePath) {
-          await ProjectsController.deleteFile(oldFilePath, res);
-        }
+        if (oldFile) await ProjectsController.deleteFile(oldFile);
       }
 
-      // Update other fields
-      const updateData = {
-        title: title || project.title,
-        description: description || project.description,
-        media_alt: media_alt || project.media_alt,
-        project_link: project_link|| project.project_link,
-        github_link: github_link || project.github_link,
-        technologies: technologies|| project.technologies,
+      // Update fields
+      await project.update({
+        title: title ?? project.title,
+        description: description ?? project.description,
+        media_alt: media_alt ?? project.media_alt,
+        github_link: github_link ?? project.github_link,
+        media_path: project.media_path,
+        project_link: project_link ?? project.project_link,
         status:
           status !== undefined
             ? status === "true" || status === true
             : project.status,
         sort_order:
           sort_order !== undefined ? parseInt(sort_order) : project.sort_order,
-        media_path: project.media_path,
-      };
+      });
 
-      await project.update(updateData);
+      // UPDATE TECHNOLOGIES (pivot table)
+      if (technologies) {
+        // Convert input to array of numbers
+        const techArray = Array.isArray(technologies)
+          ? technologies.map(Number)
+          : JSON.parse(technologies).map(Number);
 
-      // Fetch the updated project
-      const updatedProject = await Projects.findByPk(id);
-      res.json(updatedProject);
-    } catch (error) {
-      next(error);
-    }
-  }
+        // Validate IDs exist
+        if (techArray.length > 0) {
+          const existingTech = await Technology.findAll({
+            where: { id: techArray },
+            attributes: ["id"],
+          });
 
-  static async addSkillsToProject(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { skillIds } = req.body;
+          const existingIds = existingTech.map((t) => t.id);
+          const invalidIds = techArray.filter(
+            (id) => !existingIds.includes(id)
+          );
 
-      const project = await Projects.findByPk(id);
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
+          if (invalidIds.length > 0) {
+            return res.status(400).json({
+              success: false,
+              message: `Invalid technology IDs: ${invalidIds.join(", ")}`,
+            });
+          }
+        }
+
+        // Safe to update pivot table
+        await project.setTechnologies_list(techArray);
       }
 
-      if (!Array.isArray(skillIds)) {
-        return res.status(400).json({ message: "skillIds must be an array" });
-      }
-
-      // Add skills to project
-      await project.addSkills(skillIds);
-
-      // Fetch updated project with skills
-      const updatedProject = await Projects.findByPk(id, {
+      // Return updated project with technologies
+      const updatedData = await Projects.findByPk(id, {
         include: [
           {
-            model: Skills,
-            as: "skills",
+            model: Technology,
+            as: "technologies_list",
+            attributes: ["id", "name", "status"],
             through: { attributes: [] },
           },
         ],
       });
 
-      res.json({
+      return res.json({
         success: true,
-        message: "Skills added to project successfully",
-        project: updatedProject,
+        message: "Project updated successfully",
+        data: updatedData,
       });
     } catch (error) {
+      console.error("Error updating project:", error);
       next(error);
     }
   }
 
-  static async removeSkillsFromProject(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { skillIds } = req.body;
-
-      const project = await Projects.findByPk(id);
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-
-      if (!Array.isArray(skillIds)) {
-        return res.status(400).json({ message: "skillIds must be an array" });
-      }
-
-      // Remove skills from project
-      await project.removeSkills(skillIds);
-
-      // Fetch updated project with skills
-      const updatedProject = await Projects.findByPk(id, {
-        include: [
-          {
-            model: Skills,
-            as: "skills",
-            through: { attributes: [] },
-          },
-        ],
-      });
-
-      res.json({
-        success: true,
-        message: "Skills removed from project successfully",
-        project: updatedProject,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async setProjectSkills(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { skills } = req.body;
-
-      const project = await Projects.findByPk(id);
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-
-      if (!Array.isArray(skills)) {
-        return res.status(400).json({ message: "Skills must be an array" });
-      }
-
-      // Set skills for the project (replaces all existing skills)
-      await project.setSkills(skills);
-
-      // Fetch updated project with skills
-      const updatedProject = await Projects.findByPk(id);
-
-      res.json({
-        success: true,
-        message: "Skills set for project successfully",
-        project: updatedProject,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
+  // ======================================================
+  // DELETE PROJECT
+  // ======================================================
   static async delete(req, res, next) {
     try {
       const { id } = req.params;
+
       const project = await Projects.findByPk(id);
 
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Delete associated file
+      // Remove file if exists
       if (project.media_path) {
-        const fs = require("fs");
-        const path = require("path");
-        const fullPath = path.join(__dirname, "../uploads", project.media_path);
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
+        await ProjectsController.deleteFile(project.media_path);
       }
 
+      // Delete project (auto deletes pivot due to CASCADE)
       await project.destroy();
-      res.status(200).json({
-        success: true,
-        message: "Project deleted successfully",
-      });
+
+      res.json({ success: true, message: "Project deleted successfully" });
     } catch (error) {
       next(error);
     }

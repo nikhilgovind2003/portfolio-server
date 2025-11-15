@@ -103,7 +103,6 @@ class Skills {
     try {
       const { id } = req.params;
       const data = { ...req.body };
-      console.log(data);
 
       const skill = await DataBase.findByPk(id);
 
