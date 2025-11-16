@@ -12,7 +12,7 @@ router.get("/", CmsController.index);
 
 // Update CMS route
 router.put(
-  "/",
+  "/:id",
   updateCmsRules,
   validateCms,
   uploadImage("cms", "media_path"),

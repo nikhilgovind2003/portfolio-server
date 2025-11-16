@@ -11,7 +11,7 @@ class WebController {
             include: [
               {
                 model: models.Technology,
-                as: "techList",
+                as: "technologies_list",
                 attributes: ["name"],
                 through: { attributes: [] },
               },
@@ -32,7 +32,7 @@ class WebController {
         },
       });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while fetching data." });
+      res.status(500).json({ error: error.message });
       next(error);
     }
   }

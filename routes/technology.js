@@ -16,6 +16,7 @@ function validate(req, res, next) {
 
 // Get all Technology
 router.get("/", TechnologyController.index);
+router.get("/active-true", TechnologyController.shows);
 
 
 // Create new technology
