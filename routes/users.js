@@ -6,7 +6,7 @@ const {
   updateUserValidation,
 } = require("../validations/usersValidator");
 
-router.use(auth)
+// router.use(auth)
 // Get all users
 router.get("/", UsersController.getAll);
 

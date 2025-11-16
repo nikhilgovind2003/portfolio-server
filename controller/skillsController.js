@@ -1,5 +1,6 @@
 const model = require("../models/index");
 const path = require("path");
+const PaginationHelper = require("../utils/paginationHelper");
 const fs = require("fs").promises;
 const DataBase = model.Skills;
 
@@ -28,15 +29,40 @@ class Skills {
     }
   }
 
-  static async getAll(req, res, next) {
+ static async getAll(req, res, next) {
     try {
-      const skills = await DataBase.findAll();
-      res.json(skills);
+      const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
+      const { search, status } = req.query;
+
+      // Build where clause
+      const whereClause = {};
+      
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ];
+      }
+
+      if (status !== undefined) {
+        whereClause.status = status === "true";
+      }
+
+      // Fetch data with pagination
+      const { count, rows } = await DataBase.findAndCountAll({
+        where: whereClause,
+        order: [["sort_order", "ASC"]],
+        limit,
+        offset,
+      });
+
+      // Format response
+      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      res.json(response);
     } catch (error) {
       next(error);
     }
   }
-
   static async create(req, res, next) {
     try {
       const dataModel = req.body;

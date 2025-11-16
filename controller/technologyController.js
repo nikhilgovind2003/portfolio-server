@@ -1,4 +1,5 @@
 const { Technology } = require("../models");
+const PaginationHelper = require("../utils/paginationHelper");
 
 // Technology Controller
 class TechnologyController {
@@ -34,21 +35,40 @@ class TechnologyController {
   }
 
   // Get all Technology
-  static async index(req, res) {
+ static async index(req, res, next) {
     try {
-      const Technologies = await Technology.findAll();
+      const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
+      const { search, status } = req.query;
 
-      return res.status(200).json(Technologies);
-    } catch (error) {
-      console.error("Error fetching Technology:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Something went wrong",
-        error: error.message,
+      // Build where clause
+      const whereClause = {};
+      
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ];
+      }
+
+      if (status !== undefined) {
+        whereClause.status = status === "true";
+      }
+
+      // Fetch data with pagination
+      const { count, rows } = await Technology.findAndCountAll({
+        where: whereClause,
+        order: [["sort_order", "ASC"]],
+        limit,
+        offset,
       });
+
+      // Format response
+      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      res.json(response);
+    } catch (error) {
+      next(error);
     }
   }
-
     static async shows(req, res) {
     try {
       const Technologies = await Technology.findAll({

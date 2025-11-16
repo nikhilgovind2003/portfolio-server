@@ -3,11 +3,9 @@ const fs = require("fs").promises;
 const logger = require("../config/logger");
 
 const { Projects, Technology } = require("../models");
+const PaginationHelper = require("../utils/paginationHelper");
 
 class ProjectsController {
-  // ======================================================
-  // DELETE FILE
-  // ======================================================
   static async deleteFile(filePath) {
     if (!filePath) return false;
 
@@ -30,13 +28,31 @@ class ProjectsController {
     }
   }
 
-  // ======================================================
-  // GET ALL PROJECTS WITH TECHNOLOGIES
-  // ======================================================
-  static async getAll(req, res, next) {
+static async getAll(req, res, next) {
     try {
-      const projects = await Projects.findAll({
+      const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
+      const { search, status } = req.query;
+
+      // Build where clause
+      const whereClause = {};
+      
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ];
+      }
+
+      if (status !== undefined) {
+        whereClause.status = status === "true";
+      }
+
+      // Fetch data with pagination
+      const { count, rows } = await Projects.findAndCountAll({
+        where: whereClause,
         order: [["sort_order", "ASC"]],
+        limit,
+        offset,
         include: [
           {
             model: Technology,
@@ -47,15 +63,13 @@ class ProjectsController {
         ],
       });
 
-      res.json(projects);
+      // Format response
+      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      res.json(response);
     } catch (error) {
       next(error);
     }
   }
-
-  // ======================================================
-  // GET PROJECT BY ID WITH TECHNOLOGIES
-  // ======================================================
   static async getById(req, res, next) {
     try {
       const { id } = req.params;
@@ -81,9 +95,6 @@ class ProjectsController {
     }
   }
 
-  // ======================================================
-  // CREATE PROJECT
-  // ======================================================
   static async create(req, res, next) {
     try {
       const {
@@ -147,9 +158,6 @@ class ProjectsController {
     }
   }
 
-  // ======================================================
-  // UPDATE PROJECT
-  // ======================================================
   static async update(req, res, next) {
     try {
       const { id } = req.params;
@@ -249,9 +257,6 @@ class ProjectsController {
     }
   }
 
-  // ======================================================
-  // DELETE PROJECT
-  // ======================================================
   static async delete(req, res, next) {
     try {
       const { id } = req.params;
@@ -275,9 +280,6 @@ class ProjectsController {
       next(error);
     }
   }
-
-
-
 }
 
 module.exports = ProjectsController;

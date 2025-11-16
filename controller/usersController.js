@@ -1,12 +1,36 @@
 const { User } = require("../models/index");
+const PaginationHelper = require("../utils/paginationHelper");
 
 class UsersController {
-  static async getAll(req, res, next) {
+ static async getAll(req, res, next) {
     try {
-      const users = await User.findAll({
-        order: [["created_at", "DESC"]],
+      const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
+      const { search, status } = req.query;
+
+      // Build where clause
+      const whereClause = {};
+      
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ];
+      }
+
+      if (status !== undefined) {
+        whereClause.status = status === "true";
+      }
+
+      // Fetch data with pagination
+      const { count, rows } = await User.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
       });
-      res.json(users);
+
+      // Format response
+      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      res.json(response);
     } catch (error) {
       next(error);
     }

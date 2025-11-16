@@ -5,7 +5,7 @@ const auth = require("../middlewares/authMiddleware.js");
 const { createMessageValidation } = require("../validations/contactValidator.js");
 
 
-router.use(auth)
+// router.use(auth)
 router.get("/", MessageController.index);
 
 // Update CMS route

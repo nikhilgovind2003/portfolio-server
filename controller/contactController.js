@@ -1,4 +1,5 @@
 const models = require("../models");
+const PaginationHelper = require("../utils/paginationHelper");
 
 const dataBase = models.Contact;
 
@@ -19,17 +20,39 @@ class ContactController {
     }
     }
     
-    static async index(req, res, next) {
-        try {
-            const messages = await dataBase.findAll({
-                order: [["createdAt", "DESC"]],
-            });
-            res.json(messages);
-        }
-        catch (error) {
-            next(error);
-        }
+   static async index(req, res, next) {
+    try {
+      const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
+      const { search, status } = req.query;
+
+      // Build where clause
+      const whereClause = {};
+      
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ];
+      }
+
+      if (status !== undefined) {
+        whereClause.status = status === "true";
+      }
+
+      // Fetch data with pagination
+      const { count, rows } = await dataBase.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      // Format response
+      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      res.json(response);
+    } catch (error) {
+      next(error);
     }
+  }
 }
 
 module.exports = ContactController;
