@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { Technology } = require("../models");
 const PaginationHelper = require("../utils/paginationHelper");
 
@@ -45,8 +46,7 @@ class TechnologyController {
       
       if (search) {
         whereClause[Op.or] = [
-          { title: { [Op.like]: `%${search}%` } },
-          { description: { [Op.like]: `%${search}%` } },
+          { name: { [Op.iLike]: `%${search}%` } },
         ];
       }
 

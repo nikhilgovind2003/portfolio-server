@@ -12,8 +12,8 @@ class UsersController {
       
       if (search) {
         whereClause[Op.or] = [
-          { title: { [Op.like]: `%${search}%` } },
-          { description: { [Op.like]: `%${search}%` } },
+          { name: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } }
         ];
       }
 

@@ -4,6 +4,7 @@ const logger = require("../config/logger");
 
 const { Projects, Technology } = require("../models");
 const PaginationHelper = require("../utils/paginationHelper");
+const { Op } = require("sequelize");
 
 class ProjectsController {
   static async deleteFile(filePath) {
@@ -33,13 +34,18 @@ static async getAll(req, res, next) {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
+      console.log("page : ", page);
+      console.log("limit : ", limit);
+      console.log("offset : ", offset);
+
+      
       // Build where clause
       const whereClause = {};
       
       if (search) {
         whereClause[Op.or] = [
-          { title: { [Op.like]: `%${search}%` } },
-          { description: { [Op.like]: `%${search}%` } },
+          { title: { [Op.iLike]: `%${search}%` } },
+          { description: { [Op.iLike]: `%${search}%` } },
         ];
       }
 

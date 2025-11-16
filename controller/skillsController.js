@@ -1,6 +1,7 @@
 const model = require("../models/index");
 const path = require("path");
 const PaginationHelper = require("../utils/paginationHelper");
+const { Op } = require("sequelize");
 const fs = require("fs").promises;
 const DataBase = model.Skills;
 
@@ -39,8 +40,7 @@ class Skills {
       
       if (search) {
         whereClause[Op.or] = [
-          { title: { [Op.like]: `%${search}%` } },
-          { description: { [Op.like]: `%${search}%` } },
+          { skills: { [Op.iLike]: `%${search}%` } },
         ];
       }
 

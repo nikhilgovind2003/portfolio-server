@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const models = require("../models");
 const PaginationHelper = require("../utils/paginationHelper");
 
@@ -30,8 +31,8 @@ class ContactController {
       
       if (search) {
         whereClause[Op.or] = [
-          { title: { [Op.like]: `%${search}%` } },
-          { description: { [Op.like]: `%${search}%` } },
+          {name: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
         ];
       }
 
