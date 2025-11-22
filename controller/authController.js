@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const models = require("../models/index.js");
 const dataBase = models.Auth;
-const generateToken = require("../utils/generateToken")
+const generateToken = require("../utils/generateToken");
 class AuthController {
   static async login(req, res, next) {
     try {
@@ -17,18 +17,22 @@ class AuthController {
         });
       }
 
-
       const isMatch = await bcrypt.compare(password, user.password);
-      if (isMatch) {
-        const token = generateToken(user.id);
-        return res.status(200).json({
-          success: true,
-          token,
-          user
+
+      if (!isMatch) {
+        return res.status(401).json({
+          message: "Invalid email or password",
         });
       }
+
+      const token = generateToken(user.id);
+      return res.status(200).json({
+        success: true,
+        token,
+        user,
+      });
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
 
@@ -58,9 +62,9 @@ class AuthController {
         result: user,
       });
     } catch (error) {
-      next(error)
+      next(error.message);
     }
   }
 }
 
-module.exports = AuthController
+module.exports = AuthController;
