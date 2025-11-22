@@ -7,7 +7,6 @@ const defineSkills = require('./skills');
 const defineContact = require('./contact');
 const defineTechnology  = require('./technology');
 const defineAuth = require("./auth")
-const defineProjectTechnology = require("./projectTechnology")
 
 const models = {
   User: defineUser(sequelize),
