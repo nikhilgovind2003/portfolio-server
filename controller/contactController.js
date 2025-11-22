@@ -9,7 +9,6 @@ class ContactController {
     try {
       const data = { ...req.body };
 
-        console.log(data)
       const newMessage = await dataBase.create({ ...data });
 
         res.status(201).json({

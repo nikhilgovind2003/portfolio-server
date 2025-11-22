@@ -110,7 +110,6 @@ const getProjectWithSkills = async (projectId) => {
   const response = await fetch(`/api/projects/${projectId}`);
   const project = await response.json();
   
-  console.log(`Project: ${project.title}`);
   console.log('Skills:', project.skills.map(skill => skill.skills).join(', '));
   
   return project;

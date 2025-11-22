@@ -12,7 +12,6 @@ export async function deleteFile(filePath) {
         filePath.replace("/uploads/", "")
       );
 
-      console.log("absolutePath: ", absolutePath);
       await fs.unlink(absolutePath);
 
       console.info(`Deleted file: ${absolutePath}`);

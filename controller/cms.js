@@ -25,7 +25,6 @@ class CmsController {
       
       const data = req.body
 
-      console.log(req.body)
       const cmsData = await dataBase.create(req.body)
 
       return res.json({
@@ -43,7 +42,6 @@ class CmsController {
       if (!cmsItem) return res.status(404).json({ error: "CMS item not found" });
 
 
-      console.log("req.file: ", req.file)
       const newFilePath = req?.file?.path || cmsItem.media_path;
 
 

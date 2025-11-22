@@ -34,9 +34,6 @@ static async getAll(req, res, next) {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
-      console.log("page : ", page);
-      console.log("limit : ", limit);
-      console.log("offset : ", offset);
 
       
       // Build where clause
@@ -116,7 +113,6 @@ static async getAll(req, res, next) {
 
       const media_path = req.file?.path ?? null;
 
-      console.log("media_path")
       // Convert technology input to array of IDs
       const techArray = technologies
         ? Array.isArray(technologies)
