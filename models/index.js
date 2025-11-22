@@ -7,7 +7,7 @@ const defineSkills = require('./skills');
 const defineContact = require('./contact');
 const defineTechnology  = require('./technology');
 const defineAuth = require("./auth")
-const defineProjectTechnology = require("./projectTechnology")
+// const defineProjectTechnology = require("./projectTechnology")
 
 const models = {
   User: defineUser(sequelize),
@@ -17,7 +17,7 @@ const models = {
   Contact: defineContact(sequelize),
   Technology: defineTechnology(sequelize),
   Auth: defineAuth(sequelize),
-  ProjectTechnology: defineProjectTechnology(sequelize)
+  // ProjectTechnology: defineProjectTechnology(sequelize)
 };
 
 // Define associations after all models are loaded

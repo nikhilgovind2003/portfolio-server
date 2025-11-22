@@ -30,7 +30,7 @@ module.exports = (sequelize) => {
 
   Technology.associate = (models) => {
     Technology.belongsToMany(models.Projects, {
-      through: models.ProjectTechnology,
+      through: "project_technology",
       foreignKey: "technology_id",
       otherKey: "project_id",
       as: "projects_list",

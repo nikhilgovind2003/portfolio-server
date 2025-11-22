@@ -48,7 +48,7 @@ module.exports = (sequelize) => {
 
   Projects.associate = (models) => {
     Projects.belongsToMany(models.Technology, {
-      through: models.ProjectTechnology,
+      through: "project_technology",
       foreignKey: "project_id",
       otherKey: "technology_id",
       as: "technologies_list",
