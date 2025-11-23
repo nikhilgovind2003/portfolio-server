@@ -13,8 +13,8 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin:
-    process.env.NODE_ENV === "production"
-      ? ["https://yourdomain.com"] // Replace with your production domain
+    process.env.NODE_ENV === "development"
+      ? ["https://nikhil-govind-portfolio-admin.netlify.app"] // Replace with your production domain
       : ["http://localhost:3000", "http://localhost:8080"], // Development origins
   credentials: true,
   optionsSuccessStatus: 200,
