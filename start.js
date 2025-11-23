@@ -64,5 +64,5 @@ console.log('1. Make sure PostgreSQL is running');
 console.log('2. Create a database named "portfolio_db"');
 console.log('3. Update your .env file with correct database credentials');
 console.log('4. Run: npm run dev');
-console.log('\n📚 API Documentation: http://localhost:4000/health');
-console.log('🔗 API Base URL: http://localhost:4000/api');
+console.log('\n📚 API Documentation: https://portfolio-api-0cc6.onrender.com/health');
+console.log('🔗 API Base URL: https://portfolio-api-0cc6.onrender.com/api');

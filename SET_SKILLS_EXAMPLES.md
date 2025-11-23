@@ -4,7 +4,7 @@
 
 ### **1. Set Skills When Creating a Project**
 ```bash
-curl -X POST http://localhost:4000/api/projects \
+curl -X POST https://portfolio-api-0cc6.onrender.com/api/projects \
   -F "title=My Portfolio Website" \
   -F "description=A modern portfolio website built with React and Node.js" \
   -F "media_alt=Portfolio website screenshot" \
@@ -16,21 +16,21 @@ curl -X POST http://localhost:4000/api/projects \
 
 ### **2. Set Skills for Existing Project (Replace All)**
 ```bash
-curl -X PUT http://localhost:4000/api/projects/1/skills \
+curl -X PUT https://portfolio-api-0cc6.onrender.com/api/projects/1/skills \
   -H "Content-Type: application/json" \
   -d '{"skills": [1, 2, 3, 4]}'
 ```
 
 ### **3. Add Skills to Existing Project**
 ```bash
-curl -X POST http://localhost:4000/api/projects/1/skills \
+curl -X POST https://portfolio-api-0cc6.onrender.com/api/projects/1/skills \
   -H "Content-Type: application/json" \
   -d '{"skillIds": [5, 6]}'
 ```
 
 ### **4. Remove Skills from Project**
 ```bash
-curl -X DELETE http://localhost:4000/api/projects/1/skills \
+curl -X DELETE https://portfolio-api-0cc6.onrender.com/api/projects/1/skills \
   -H "Content-Type: application/json" \
   -d '{"skillIds": [1, 2]}'
 ```
@@ -179,14 +179,14 @@ const getAllProjectsWithSkills = async () => {
 
 1. **Create some skills first:**
 ```bash
-curl -X POST http://localhost:4000/api/skills \
+curl -X POST https://portfolio-api-0cc6.onrender.com/api/skills \
   -H "Content-Type: application/json" \
   -d '{"skills": "React", "status": true, "sort_order": 1}'
 ```
 
 2. **Then create a project with those skills:**
 ```bash
-curl -X POST http://localhost:4000/api/projects \
+curl -X POST https://portfolio-api-0cc6.onrender.com/api/projects \
   -F "title=Test Project" \
   -F "description=Test Description" \
   -F "media_alt=Test Alt" \
@@ -197,5 +197,5 @@ curl -X POST http://localhost:4000/api/projects \
 
 3. **Check the result:**
 ```bash
-curl http://localhost:4000/api/projects/1
+curl https://portfolio-api-0cc6.onrender.com/api/projects/1
 ```

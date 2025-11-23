@@ -90,7 +90,7 @@ Production mode:
 npm start
 ```
 
-The server will start on `http://localhost:4000` (or the port specified in your `.env` file).
+The server will start on `https://portfolio-api-0cc6.onrender.com` (or the port specified in your `.env` file).
 
 ## Database Schema
 

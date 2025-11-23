@@ -1,5 +1,8 @@
 require('dotenv').config();
 
+
+console.log("DATABASE_URL from env:", process.env.DATABASE_URL);
+
 const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   db: {
