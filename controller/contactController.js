@@ -7,30 +7,48 @@ const dataBase = models.Contact;
 class ContactController {
   static async create(req, res, next) {
     try {
-      const data = { ...req.body };
+      const { recaptchaToken, ...formData } = req.body;
+      const secret = process.env.RECAPTCHA_SECRET_KEY;
 
-      const newMessage = await dataBase.create({ ...data });
+      const verifyResponse = await axios.post(
+        `https://www.google.com/recaptcha/api/siteverify`,
+        null,
+        {
+          params: {
+            secret: secret,
+            response: recaptchaToken,
+          },
+        }
+      );
+      if (!verifyResponse.data.success) {
+        return res.status(400).json({
+          success: false,
+          error: "reCAPTCHA verification failed",
+        });
+      }
 
-        res.status(201).json({
-          message: "Message sent successfully",
-          data: newMessage,
+      const newMessage = await dataBase.create({ ...formData });
+
+      res.status(201).json({
+        message: "Message sent successfully",
+        data: newMessage,
       });
     } catch (err) {
       next(err);
     }
-    }
-    
-   static async index(req, res, next) {
+  }
+
+  static async index(req, res, next) {
     try {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
       // Build where clause
       const whereClause = {};
-      
+
       if (search) {
         whereClause[Op.or] = [
-          {name: { [Op.iLike]: `%${search}%` } },
+          { name: { [Op.iLike]: `%${search}%` } },
           { email: { [Op.iLike]: `%${search}%` } },
         ];
       }
@@ -47,7 +65,12 @@ class ContactController {
       });
 
       // Format response
-      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      const response = PaginationHelper.formatResponse(
+        rows,
+        count,
+        page,
+        limit
+      );
       res.json(response);
     } catch (error) {
       next(error);

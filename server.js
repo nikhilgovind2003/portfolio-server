@@ -46,7 +46,7 @@ async function bootstrap() {
     logger.info("server synced");
     const port = config.port;
     app.listen(port, () => {
-      logger.info(`Server listening on http://localhost:${port}`);
+      logger.info(`Server listening`);
     });
   } catch (error) {
     logger.error("Failed to start server:", error);

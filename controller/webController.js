@@ -18,7 +18,7 @@ class WebController {
             ],
           }),
           models.Skills.findAll({
-            order: [["sort_order", "ASC"]],
+            order: [["sort_order", "DESC"]],
             where: { status: true },
           }),
         ]);
