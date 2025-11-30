@@ -17,7 +17,6 @@ class Skills {
         filePath.replace("/uploads/", "")
       );
 
-      console.log("absolutePath: ", absolutePath);
       await fs.unlink(absolutePath);
 
       logger.info(`Deleted file: ${absolutePath}`);
@@ -66,7 +65,7 @@ class Skills {
   static async create(req, res, next) {
     try {
       const dataModel = req.body;
-      const media_path = req.file?.path ?? null;
+      const media_path = req.files?.media_path[0]?.relativePath ?? null;
 
       const existingSkil = await DataBase.findOne({
         where: { skills: dataModel.skills },
@@ -135,12 +134,14 @@ class Skills {
       if (!skill) {
         return res.status(404).json({ message: "Skill not found" });
       }
-      if (req.file) {
+      if (req.files) {
         // Save old path before overwriting
         const oldFilePath = skill.media_path;
 
         // Set new file path
-        skill.media_path = req.file.path;
+
+
+        skill.media_path = req.files?.media_path[0]?.relativePath;
 
         // Delete old file
         if (oldFilePath) {

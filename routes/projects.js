@@ -1,19 +1,24 @@
 const router = require("express").Router();
 const ProjectsController = require("../controller/projectsController");
 const auth = require("../middlewares/authMiddleware");
-const uploadImage = require("../middlewares/multerMiddleware");
+const { uploadFields } = require("../middlewares/multerMiddleware");
 const {
   createProjectValidation,
   updateProjectValidation,
   projectSkillValidation,
 } = require("../validations/projectsValidator");
 
+
+
+const uploads = uploadFields("projects", [{ name: "media_path", maxCount: 1 }]);
+
+
 // router.use(auth)
 // Create a new project
 router.post(
   "/",
   createProjectValidation,
-  uploadImage("projects", "media_path"),
+  uploads,
   ProjectsController.create
 );
 
@@ -27,7 +32,7 @@ router.get("/:id", ProjectsController.getById);
 router.put(
   "/:id",
   updateProjectValidation,
-  uploadImage("projects", "media_path"),
+  uploads,
   ProjectsController.update
 );
 

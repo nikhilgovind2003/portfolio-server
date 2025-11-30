@@ -20,53 +20,49 @@ class CmsController {
   }
 
 
-  static async create(req, res, next) {
-    try {
-      
-      const data = req.body
 
-      const cmsData = await dataBase.create(req.body)
+static async update(req, res, next) {
+  try {
+    const cmsItem = await dataBase.findOne();
+    if (!cmsItem) return res.status(404).json({ error: "CMS item not found" });
 
-      return res.json({
-        success: true,
-        cmsData
-      })
-    } catch (error) {
-      next(error);
-    }
+    // Access files from req.files object
+    const mediaFiles = req.files?.media_path || [];
+    const resumeFiles = req.files?.resume || [];
+
+    // Get the first media file path (or keep existing)
+    const newFilePath = mediaFiles.length > 0 ? mediaFiles[0].relativePath : cmsItem.media_path;
+
+    // Get the resume file path (or keep existing)
+    const resumePath = resumeFiles.length > 0 ? resumeFiles[0].relativePath : cmsItem.resume;
+
+    console.log("Media files:", mediaFiles);
+    console.log("Resume files:", resumeFiles);
+    console.log("New media path:", newFilePath);
+    console.log("New resume path:", resumePath);
+
+    // Update fields dynamically
+    const updateFields = [
+      'super_title', 'title', 'description', 'btn_one_text', 'btn_one_link',
+      'btn_two_text', 'media_alt', 'project_title',
+      'skills_title', 'about_title', 'about_description', 'contact_title'
+    ];
+
+    updateFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        cmsItem[field] = req.body[field];
+      }
+    });
+
+    cmsItem.media_path = newFilePath;
+    cmsItem.resume = resumePath;
+
+    await cmsItem.save();
+    res.json(cmsItem);
+  } catch (err) {
+    next(err);
   }
-
-  static async update(req, res, next) {
-    try {
-      const cmsItem = await dataBase.findOne();
-      if (!cmsItem) return res.status(404).json({ error: "CMS item not found" });
-
-
-      const newFilePath = req?.file?.path || cmsItem.media_path;
-
-
-      
-      // Update fields dynamically
-      const updateFields = [
-        'super_title', 'title', 'description', 'btn_one_text', 'btn_one_link',
-        'btn_two_text', 'btn_two_link', 'media_alt', 'project_title',
-        'skills_title', 'about_title', 'about_description', 'contact_title'
-      ];
-
-      updateFields.forEach(field => {
-        if (req.body[field] !== undefined) {
-          cmsItem[field] = req.body[field];
-        }
-      });
-
-      cmsItem.media_path = newFilePath;
-
-      await cmsItem.save();
-      res.json(cmsItem);
-    } catch (err) {
-      next(err);
-    }
-  }
+}
 }
 
 module.exports = CmsController;

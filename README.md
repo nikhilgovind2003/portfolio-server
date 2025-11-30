@@ -103,7 +103,7 @@ The server will start on `https://portfolio-api-0cc6.onrender.com` (or the port 
 ### CMS Table
 - `id` (Primary Key)
 - `super_title`, `title`, `description` (Strings)
-- `btn_one_text`, `btn_one_link`, `btn_two_text`, `btn_two_link` (Strings)
+- `btn_one_text`, `btn_one_link`, `btn_two_text`, `resume` (Strings)
 - `media_path`, `media_alt` (Strings)
 - `project_title`, `skills_title`, `about_title`, `about_description`, `contact_title` (Strings)
 - `created_at`, `updated_at` (Timestamps)

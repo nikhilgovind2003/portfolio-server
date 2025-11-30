@@ -33,9 +33,9 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      btn_two_link: {
+      resume: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       media_path: {
         type: DataTypes.STRING,

@@ -111,7 +111,7 @@ static async getAll(req, res, next) {
         sort_order,
       } = req.body;
 
-      const media_path = req.file?.path ?? null;
+      const media_path = req.files?.media_path[0]?.relativePath ?? null;
 
       // Convert technology input to array of IDs
       const techArray = technologies
@@ -182,9 +182,9 @@ static async getAll(req, res, next) {
       }
 
       // FILE HANDLING
-      if (req.file) {
+      if (req.files) {
         const oldFile = project.media_path;
-        project.media_path = req.file.path;
+        project.media_path = req.files?.media_path[0]?.relativePath;
 
         if (oldFile) await ProjectsController.deleteFile(oldFile);
       }

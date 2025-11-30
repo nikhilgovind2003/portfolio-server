@@ -13,7 +13,7 @@ const seedCmsData = async () => {
         btn_one_text: "Learn More",
         btn_one_link: "https://example.com/learn-more",
         btn_two_text: "Get Started",
-        btn_two_link: "https://example.com/get-started",
+        resume: "https://example.com/get-started",
         media_path: "/images/banner.jpg",
         media_alt: "Banner Image",
         project_title: "Our Projects",

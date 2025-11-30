@@ -3,7 +3,6 @@ const UsersController = require("../controller/usersController");
 const auth = require("../middlewares/authMiddleware");
 const {
   createUserValidation,
-  updateUserValidation,
 } = require("../validations/usersValidator");
 
 // router.use(auth)

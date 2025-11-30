@@ -8,7 +8,6 @@ const updateCmsRules = [
   body("btn_one_text").isString().optional().withMessage("Button one text must be a string"),
   body("btn_one_link").isString().optional().withMessage("Button one link must be a string"),
   body("btn_two_text").isString().optional().withMessage("Button two text must be a string"),
-  body("btn_two_link").isString().optional().withMessage("Button two link must be a string"),
   body("media_alt").isString().optional().withMessage("Media alt text must be a string"),
   body("project_title").isString().optional().withMessage("Project title must be a string"),
   body("skills_title").isString().optional().withMessage("Skills title must be a string"),

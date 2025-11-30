@@ -6,8 +6,16 @@ const {
   validateCms,
 } = require("../validations/cmsValidator.js");
 
-const uploadImage = require("../middlewares/multerMiddleware.js");
+const { uploadFields } = require("../middlewares/multerMiddleware.js");
 
+
+const uploads =   uploadFields("cms", [
+    { name: "media_path", maxCount: 1 },
+    { name: "resume", maxCount: 1 },
+  ]);
+
+
+  
 router.get("/", CmsController.index);
 
 // Update CMS route
@@ -15,7 +23,7 @@ router.put(
   "/:id",
   updateCmsRules,
   validateCms,
-  uploadImage("cms", "media_path"),
+  uploads,
   CmsController.update
 );
 

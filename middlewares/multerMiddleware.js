@@ -27,7 +27,71 @@ const storage = (routerFileName) =>
     },
   });
 
-// Middleware factory function
+// File filter for different types
+const fileFilter = (req, file, cb) => {
+  // Image types
+  const imageTypes = /jpeg|jpg|png|gif|webp/;
+  // Document types (resume)
+  const documentTypes = /pdf|doc|docx/;
+  
+  const extname = path.extname(file.originalname).toLowerCase();
+  
+  // Check if it's an image field
+  if (file.fieldname === "media_path") {
+    const isValidImage = imageTypes.test(extname.replace('.', ''));
+    const isValidMimetype = /image\/(jpeg|jpg|png|gif|webp)/.test(file.mimetype);
+    
+    if (isValidImage && isValidMimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only images (JPEG, JPG, PNG, GIF, WEBP) are allowed for media_path"));
+    }
+  }
+  // Check if it's a resume field
+  else if (file.fieldname === "resume") {
+    const isValidDoc = documentTypes.test(extname.replace('.', ''));
+    const isValidMimetype = /application\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document)/.test(file.mimetype);
+    
+    if (isValidDoc && isValidMimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF, DOC, and DOCX files are allowed for resume"));
+    }
+  }
+  else {
+    cb(new Error("Invalid field name"));
+  }
+};
+
+// Middleware factory function for multiple fields
+const uploadFields = (routerFileName, fields) => {
+  const multerInstance = multer({
+    storage: storage(routerFileName),
+    fileFilter: fileFilter,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  });
+
+  return (req, res, next) => {
+    multerInstance.fields(fields)(req, res, (err) => {
+      if (err) return next(err);
+
+      // Add relativePath for all uploaded files
+      if (req.files) {
+        Object.keys(req.files).forEach((fieldName) => {
+          req.files[fieldName] = req.files[fieldName].map((file) => ({
+            ...file,
+            relativePath: file.path
+              .replace(path.join(__dirname, ".."), "")
+              .replace(/\\/g, "/"),
+          }));
+        });
+      }
+      next();
+    });
+  };
+};
+
+// Keep the original uploadImage for backward compatibility
 const uploadImage = (routerFileName, fieldName, maxCount = 1) => {
   const multerInstance = multer({
     storage: storage(routerFileName),
@@ -44,13 +108,11 @@ const uploadImage = (routerFileName, fieldName, maxCount = 1) => {
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   });
 
-  // Wrap middleware to add relativePath to req.file or req.files
   if (maxCount === 1) {
     return (req, res, next) => {
       multerInstance.single(fieldName)(req, res, (err) => {
         if (err) return next(err);
 
-        // Add relativePath property
         if (req.file) {
           req.file.path = req.file.path
             .replace(path.join(__dirname, ".."), "")
@@ -64,7 +126,6 @@ const uploadImage = (routerFileName, fieldName, maxCount = 1) => {
       multerInstance.array(fieldName, maxCount)(req, res, (err) => {
         if (err) return next(err);
 
-        // Add relativePath for each file
         if (req.files && req.files.length > 0) {
           req.files = req.files.map((file) => ({
             ...file,
@@ -79,4 +140,4 @@ const uploadImage = (routerFileName, fieldName, maxCount = 1) => {
   }
 };
 
-module.exports = uploadImage;
+module.exports = { uploadImage, uploadFields };

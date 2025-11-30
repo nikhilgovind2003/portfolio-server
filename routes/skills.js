@@ -1,11 +1,16 @@
 const router = require("express").Router();
 const SkillsController = require("../controller/skillsController");
 const auth = require("../middlewares/authMiddleware");
-const uploadImage = require("../middlewares/multerMiddleware");
+const { uploadFields } = require("../middlewares/multerMiddleware");
 const {
   createSkillValidation,
   updateSkillValidation,
 } = require("../validations/skillsValidator");
+
+
+const uploads = uploadFields("skills", [{ name: "media_path", maxCount: 1 }]);
+
+
 
 // router.use(auth);
 // Get all skills
@@ -21,15 +26,15 @@ router.get("/:id", SkillsController.getById);
 router.post(
   "/",
   createSkillValidation,
-  uploadImage("skills", "media_path"),
-  SkillsController.create
+  uploads,
+   SkillsController.create
 );
 
 // Update a skill
 router.put(
   "/:id",
   updateSkillValidation,
-  uploadImage("skills", "media_path"),
+  uploads,
   SkillsController.update
 );
 
