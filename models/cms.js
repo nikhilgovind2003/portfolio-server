@@ -58,7 +58,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       about_description: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       contact_title: {
