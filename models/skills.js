@@ -1,42 +1,27 @@
-const { DataTypes } = require("sequelize");
+const mongoose = require('mongoose');
 
-module.exports = (sequelize) => {
-  const Skills = sequelize.define(
-    "Skills",
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      skills: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      media_path: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      media_alt: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-      },
-      sort_order: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: "skills",
-      timestamps: true,
-      underscored: true,
-    }
-  );
+const skillsSchema = new mongoose.Schema({
+  skills: {
+    type: String,
+    required: true,
+  },
+  media_path: {
+    type: String,
+  },
+  media_alt: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: Boolean,
+    required: true,
+  },
+  sort_order: {
+    type: Number,
+    required: true,
+  },
+}, {
+  timestamps: true,
+});
 
-  // Define associations
-  return Skills;
-};
+module.exports = mongoose.model('Skills', skillsSchema);

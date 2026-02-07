@@ -1,10 +1,10 @@
-const models = require("../models");
-const Cms = models.Cms;
+const { Cms } = require("../models");
+
 const seedCmsData = async () => {
-  const count = await Cms.count();
+  const count = await Cms.countDocuments();
   if (count === 0) {
     // Only seed if table is empty
-    await Cms.bulkCreate([
+    await Cms.create(
       {
         super_title: "Welcome to Our Site",
         title: "Explore Our Features",
@@ -22,9 +22,8 @@ const seedCmsData = async () => {
         about_description:
           "We are committed to delivering quality software solutions.",
         contact_title: "Contact Us",
-      },
-      // Add more objects as needed
-    ]);
+      }
+    );
     console.log("Seed data for CMS table inserted successfully.");
   }
 };

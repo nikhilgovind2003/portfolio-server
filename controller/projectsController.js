@@ -4,7 +4,6 @@ const logger = require("../config/logger");
 
 const { Projects, Technology } = require("../models");
 const PaginationHelper = require("../utils/paginationHelper");
-const { Op } = require("sequelize");
 
 class ProjectsController {
   static async deleteFile(filePath) {
@@ -29,64 +28,46 @@ class ProjectsController {
     }
   }
 
-static async getAll(req, res, next) {
+  static async getAll(req, res, next) {
     try {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
-
-      
-      // Build where clause
-      const whereClause = {};
+      // Build filter
+      const filter = {};
       
       if (search) {
-        whereClause[Op.or] = [
-          { title: { [Op.iLike]: `%${search}%` } },
-          { description: { [Op.iLike]: `%${search}%` } },
+        filter.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
         ];
       }
 
       if (status !== undefined) {
-        whereClause.status = status === "true";
+        filter.status = status === 'true';
       }
 
       // Fetch data with pagination
-      const { count, rows } = await Projects.findAndCountAll({
-        where: whereClause,
-        order: [["sort_order", "ASC"]],
-        limit,
-        offset,
-        include: [
-          {
-            model: Technology,
-            as: "technologies_list",
-            attributes: ["id", "name", "status"],
-            through: { attributes: [] },
-          },
-        ],
-      });
+      const totalItems = await Projects.countDocuments(filter);
+      const rows = await Projects.find(filter)
+        .sort({ sort_order: 1 })
+        .skip(offset)
+        .limit(limit)
+        .populate('technologies_list', 'name status');
 
       // Format response
-      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      const response = PaginationHelper.formatResponse(rows, totalItems, page, limit);
       res.json(response);
     } catch (error) {
       next(error);
     }
   }
+
   static async getById(req, res, next) {
     try {
       const { id } = req.params;
 
-      const project = await Projects.findByPk(id, {
-        include: [
-          {
-            model: Technology,
-            as: "technologies_list",
-            attributes: ["id", "name", "status"],
-            through: { attributes: [] },
-          },
-        ],
-      });
+      const project = await Projects.findById(id).populate('technologies_list', 'name status');
 
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -111,14 +92,15 @@ static async getAll(req, res, next) {
         sort_order,
       } = req.body;
 
-      const media_path = req.files?.media_path[0]?.relativePath ?? null;
+      const media_path = req.files?.media_path?.[0]?.relativePath ?? null;
 
       // Convert technology input to array of IDs
-      const techArray = technologies
-        ? Array.isArray(technologies)
-          ? technologies.map(Number)
-          : JSON.parse(technologies).map(Number)
-        : [];
+      let techArray = [];
+      if (technologies) {
+        techArray = Array.isArray(technologies)
+          ? technologies
+          : JSON.parse(technologies);
+      }
 
       // Create project
       const newProject = await Projects.create({
@@ -130,24 +112,10 @@ static async getAll(req, res, next) {
         github_link,
         status: status ?? true,
         sort_order: sort_order ?? 0,
+        technologies_list: techArray,
       });
 
-      // Save technologies in pivot table
-      // Safe to insert into pivot table
-      if (techArray.length > 0) {
-        await newProject.setTechnologies_list(techArray);
-      }
-
-      const fullData = await Projects.findByPk(newProject.id, {
-        include: [
-          {
-            model: Technology,
-            as: "technologies_list",
-            attributes: ["id", "name", "status"],
-            through: { attributes: [] },
-          },
-        ],
-      });
+      const fullData = await Projects.findById(newProject._id).populate('technologies_list', 'name status');
 
       return res.status(201).json({
         success: true,
@@ -175,78 +143,48 @@ static async getAll(req, res, next) {
         github_link,
       } = req.body;
 
-      const project = await Projects.findByPk(id);
+      let project = await Projects.findById(id);
 
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
 
       // FILE HANDLING
-      if (req.files) {
+      if (req.files?.media_path) {
         const oldFile = project.media_path;
-        project.media_path = req.files?.media_path[0]?.relativePath;
+        project.media_path = req.files.media_path[0].relativePath;
 
         if (oldFile) await ProjectsController.deleteFile(oldFile);
       }
 
-      // Update fields
-      await project.update({
-        title: title ?? project.title,
-        description: description ?? project.description,
-        media_alt: media_alt ?? project.media_alt,
-        github_link: github_link ?? project.github_link,
-        media_path: project.media_path,
-        project_link: project_link ?? project.project_link,
-        status:
-          status !== undefined
-            ? status === "true" || status === true
-            : project.status,
-        sort_order:
-          sort_order !== undefined ? parseInt(sort_order) : project.sort_order,
-      });
-
-      // UPDATE TECHNOLOGIES (pivot table)
-      if (technologies) {
-        // Convert input to array of numbers
-        const techArray = Array.isArray(technologies)
-          ? technologies.map(Number)
-          : JSON.parse(technologies).map(Number);
-
-        // Validate IDs exist
-        if (techArray.length > 0) {
-          const existingTech = await Technology.findAll({
-            where: { id: techArray },
-            attributes: ["id"],
-          });
-
-          const existingIds = existingTech.map((t) => t.id);
-          const invalidIds = techArray.filter(
-            (id) => !existingIds.includes(id)
-          );
-
-          if (invalidIds.length > 0) {
-            return res.status(400).json({
-              success: false,
-              message: `Invalid technology IDs: ${invalidIds.join(", ")}`,
-            });
-          }
-        }
-
-        // Safe to update pivot table
-        await project.setTechnologies_list(techArray);
+      // Prepare update object
+      if (title) project.title = title;
+      if (description) project.description = description;
+      if (media_alt) project.media_alt = media_alt;
+      if (github_link) project.github_link = github_link;
+      if (project_link) project.project_link = project_link;
+      
+      if (status !== undefined) {
+         project.status = status === 'true' || status === true;
       }
 
+      if (sort_order !== undefined) {
+          project.sort_order = parseInt(sort_order);
+      }
+
+      // UPDATE TECHNOLOGIES
+      if (technologies) {
+        const techArray = Array.isArray(technologies)
+          ? technologies
+          : JSON.parse(technologies);
+        
+        project.technologies_list = techArray;
+      }
+      
+      await project.save();
+
       // Return updated project with technologies
-      const updatedData = await Projects.findByPk(id, {
-        include: [
-          {
-            model: Technology,
-            as: "technologies_list",
-            attributes: ["id", "name", "status"],
-            through: { attributes: [] },
-          },
-        ],
-      });
+      const updatedData = await Projects.findById(id).populate('technologies_list', 'name status');
 
       return res.json({
         success: true,
@@ -263,7 +201,7 @@ static async getAll(req, res, next) {
     try {
       const { id } = req.params;
 
-      const project = await Projects.findByPk(id);
+      const project = await Projects.findById(id);
 
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -274,8 +212,8 @@ static async getAll(req, res, next) {
         await ProjectsController.deleteFile(project.media_path);
       }
 
-      // Delete project (auto deletes pivot due to CASCADE)
-      await project.destroy();
+      // Delete project
+      await Projects.findByIdAndDelete(id);
 
       res.json({ success: true, message: "Project deleted successfully" });
     } catch (error) {

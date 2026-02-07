@@ -1,5 +1,4 @@
 const { body, param } = require("express-validator");
-const { options } = require("pg/lib/defaults");
 
 // Validation for creating a new project
 const createMessageValidation = [

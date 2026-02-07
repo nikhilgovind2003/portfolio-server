@@ -1,31 +1,19 @@
-const { sequelize } = require('../db');
-
-const defineUser = require('./User');
-const defineCms = require('./cms');
-const defineProject = require('./project');
-const defineSkills = require('./skills');
-const defineContact = require('./contact');
-const defineTechnology  = require('./technology');
-const defineAuth = require("./auth")
-// const defineProjectTechnology = require("./projectTechnology")
+const User = require('./User');
+const Cms = require('./cms');
+const Projects = require('./project');
+const Skills = require('./skills');
+const Contact = require('./contact');
+const Technology = require('./technology');
+const Auth = require("./auth");
 
 const models = {
-  User: defineUser(sequelize),
-  Cms: defineCms(sequelize),
-  Projects: defineProject(sequelize),
-  Skills: defineSkills(sequelize),
-  Contact: defineContact(sequelize),
-  Technology: defineTechnology(sequelize),
-  Auth: defineAuth(sequelize),
-  // ProjectTechnology: defineProjectTechnology(sequelize)
+  User,
+  Cms,
+  Projects,
+  Skills,
+  Contact,
+  Technology,
+  Auth,
 };
 
-// Define associations after all models are loaded
-Object.keys(models).forEach(modelName => {
-  if (models[modelName].associate) {
-    models[modelName].associate(models);
-  }
-});
-
-module.exports = { sequelize, ...models };
-
+module.exports = { ...models };

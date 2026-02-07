@@ -1,59 +1,41 @@
-const { DataTypes } = require("sequelize");
+const mongoose = require('mongoose');
 
-module.exports = (sequelize) => {
-  const Projects = sequelize.define(
-    "Projects",
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      media_path: {
-        type: DataTypes.TEXT,
-      },
-      media_alt: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      github_link: {
-        type: DataTypes.TEXT,
-      },
-      project_link: {
-        type: DataTypes.TEXT,
-      },
-      status: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true,
-      },
-      sort_order: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-      },
-    },
-    {
-      tableName: "projects",
-      timestamps: true,
-      underscored: true,
-    }
-  );
+const projectsSchema = new mongoose.Schema({
+  media_path: {
+    type: String,
+  },
+  media_alt: {
+    type: String,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  github_link: {
+    type: String,
+  },
+  project_link: {
+    type: String,
+  },
+  status: {
+    type: Boolean,
+    default: true,
+  },
+  sort_order: {
+    type: Number,
+    default: 0,
+  },
+  technologies_list: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Technology',
+  }]
+}, {
+  timestamps: true,
+});
 
-  Projects.associate = (models) => {
-    Projects.belongsToMany(models.Technology, {
-      through: "project_technology",
-      foreignKey: "project_id",
-      otherKey: "technology_id",
-      as: "technologies_list",
-    });
-  };
-
-  return Projects;
-};
+module.exports = mongoose.model('Projects', projectsSchema);

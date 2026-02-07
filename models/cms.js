@@ -1,79 +1,63 @@
-const { DataTypes } = require("sequelize");
+const mongoose = require('mongoose');
 
-module.exports = (sequelize) => {
-  const Cms = sequelize.define(
-    "Cms",
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      super_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      btn_one_text: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      btn_one_link: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      btn_two_text: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      resume: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      media_path: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      media_alt: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      project_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      skills_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      about_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      about_description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      contact_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: "cms",
-      timestamps: true,
-      underscored: true,
-    }
-  );
+const cmsSchema = new mongoose.Schema({
+  super_title: {
+    type: String,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  btn_one_text: {
+    type: String,
+    required: true,
+  },
+  btn_one_link: {
+    type: String,
+    required: true,
+  },
+  btn_two_text: {
+    type: String,
+    required: true,
+  },
+  resume: {
+    type: String,
+  },
+  media_path: {
+    type: String,
+    required: true,
+  },
+  media_alt: {
+    type: String,
+    required: true,
+  },
+  project_title: {
+    type: String,
+    required: true,
+  },
+  skills_title: {
+    type: String,
+    required: true,
+  },
+  about_title: {
+    type: String,
+    required: true,
+  },
+  about_description: {
+    type: String,
+    required: true,
+  },
+  contact_title: {
+    type: String,
+    required: true,
+  },
+}, {
+  timestamps: true,
+});
 
-  return Cms;
-};
-
-
+module.exports = mongoose.model('Cms', cmsSchema);

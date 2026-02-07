@@ -1,11 +1,10 @@
-const model = require("../models/index");
+const { Skills } = require("../models/index");
 const path = require("path");
 const PaginationHelper = require("../utils/paginationHelper");
-const { Op } = require("sequelize");
 const fs = require("fs").promises;
-const DataBase = model.Skills;
+const logger = require("../config/logger");
 
-class Skills {
+class SkillsController {
   static async deleteFile(filePath) {
     if (!filePath) return false;
     try {
@@ -13,8 +12,7 @@ class Skills {
         __dirname,
         "..",
         "..",
-        "uploads",
-        filePath.replace("/uploads/", "")
+        filePath.replace(/\\/g, "/")
       );
 
       await fs.unlink(absolutePath);
@@ -34,29 +32,26 @@ class Skills {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
-      // Build where clause
-      const whereClause = {};
+      // Build filter
+      const filter = {};
       
       if (search) {
-        whereClause[Op.or] = [
-          { skills: { [Op.iLike]: `%${search}%` } },
-        ];
+        filter.skills = { $regex: search, $options: 'i' };
       }
 
       if (status !== undefined) {
-        whereClause.status = status === "true";
+        filter.status = status === 'true';
       }
 
       // Fetch data with pagination
-      const { count, rows } = await DataBase.findAndCountAll({
-        where: whereClause,
-        order: [["sort_order", "ASC"]],
-        limit,
-        offset,
-      });
+      const totalItems = await Skills.countDocuments(filter);
+      const rows = await Skills.find(filter)
+        .sort({ sort_order: 1 })
+        .skip(offset)
+        .limit(limit);
 
       // Format response
-      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      const response = PaginationHelper.formatResponse(rows, totalItems, page, limit);
       res.json(response);
     } catch (error) {
       next(error);
@@ -65,17 +60,24 @@ class Skills {
   static async create(req, res, next) {
     try {
       const dataModel = req.body;
-      const media_path = req.files?.media_path[0]?.relativePath ?? null;
+      const media_path = req.files?.media_path?.[0]?.relativePath ?? null;
 
-      const existingSkil = await DataBase.findOne({
-        where: { skills: dataModel.skills },
+      const existingSkil = await Skills.findOne({
+        skills: { $regex: new RegExp(`^${dataModel.skills}$`, 'i') }
       });
 
       if (existingSkil) {
         return res.status(400).json({ message: "Skill already exists" });
       }
 
-      const newSkill = await DataBase.create({ ...dataModel, media_path });
+      // Mongoose doesn't need to specify media_path if it's in ...dataModel, but we separated it in original code logic?
+      // Mongoose create takes object.
+      
+      // Ensure specific fields are boolean/number if passed as string from multipart form data
+      if (dataModel.status !== undefined) dataModel.status = dataModel.status === 'true' || dataModel.status === true;
+      if (dataModel.sort_order !== undefined) dataModel.sort_order = parseInt(dataModel.sort_order);
+
+      const newSkill = await Skills.create({ ...dataModel, media_path });
       res.status(201).json(newSkill);
     } catch (error) {
       next(error);
@@ -85,7 +87,7 @@ class Skills {
   static async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const skill = await DataBase.findByPk(id);
+      const skill = await Skills.findById(id);
 
       if (!skill) {
         return res.status(404).json({ message: "Skill not found" });
@@ -97,39 +99,12 @@ class Skills {
     }
   }
 
-  // static async getProjectsBySkill(req, res, next) {
-  //   try {
-  //     const { id } = req.params;
-  //     const skill = await DataBase.findByPk(id);
-
-  //     if (!skill) {
-  //       return res.status(404).json({ message: "Skill not found" });
-  //     }
-
-  //     const projects = await skill.getProjects({
-  //       order: [["sort_order", "ASC"]],
-  //     });
-
-  //     res.json({
-  //       skill: {
-  //         id: skill.id,
-  //         skills: skill.skills,
-  //         status: skill.status,
-  //         sort_order: skill.sort_order,
-  //       },
-  //       projects: projects,
-  //     });
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
-
   static async update(req, res, next) {
     try {
       const { id } = req.params;
       const data = { ...req.body };
 
-      const skill = await DataBase.findByPk(id);
+      let skill = await Skills.findById(id);
 
       if (!skill) {
         return res.status(404).json({ message: "Skill not found" });
@@ -139,24 +114,24 @@ class Skills {
         const oldFilePath = skill.media_path;
 
         // Set new file path
-
-
-        skill.media_path = req.files?.media_path[0]?.relativePath;
-
-        // Delete old file
-        if (oldFilePath) {
-          await Skills.deleteFile(oldFilePath, res);
+        if (req.files.media_path) {
+           skill.media_path = req.files.media_path[0].relativePath;
+           // Delete old file
+            if (oldFilePath) {
+              await SkillsController.deleteFile(oldFilePath);
+            }
         }
       }
-      // Correctly update with the data object
-      await skill.update({
-        ...data,
-        media_path: skill.media_path,
-      });
+      
+      // Update fields
+      if (data.skills) skill.skills = data.skills;
+      if (data.media_alt) skill.media_alt = data.media_alt;
+      if (data.status !== undefined) skill.status = data.status === 'true' || data.status === true;
+      if (data.sort_order !== undefined) skill.sort_order = parseInt(data.sort_order);
 
-      // Fetch the updated record with associations
-      const updatedData = await DataBase.findByPk(id);
-      res.json(updatedData);
+      await skill.save();
+
+      res.json(skill);
     } catch (error) {
       next(error);
     }
@@ -165,11 +140,16 @@ class Skills {
   static async delete(req, res, next) {
     try {
       const { id } = req.params;
-      const skill = await DataBase.findByPk(id);
+      const skill = await Skills.findById(id);
       if (!skill) {
         return res.status(404).json({ message: "Skill not found" });
       }
-      await skill.destroy();
+       // Remove file if exists
+      if (skill.media_path) {
+        await SkillsController.deleteFile(skill.media_path);
+      }
+      
+      await Skills.findByIdAndDelete(id);
       res.status(200).json({
         success: true,
         message: "Skill deleted successfully",
@@ -180,4 +160,4 @@ class Skills {
   }
 }
 
-module.exports = Skills;
+module.exports = SkillsController;

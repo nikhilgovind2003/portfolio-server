@@ -1,38 +1,25 @@
-const { DataTypes } = require("sequelize");
+const mongoose = require('mongoose');
 
-module.exports = (sequelize) => {
-  const Auth = sequelize.define(
-    "Auth",
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      userName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: true,
-        },
-      },
+const authSchema = new mongoose.Schema({
+  userName: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please fill a valid email address',
+    ],
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+}, {
+  timestamps: true,
+});
 
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: "auth",
-      timestamps: true,
-      underscored: true,
-    }
-  );
-
-  return Auth;
-};
+module.exports = mongoose.model('Auth', authSchema);

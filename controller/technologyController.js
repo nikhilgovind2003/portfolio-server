@@ -1,4 +1,3 @@
-const { Op } = require("sequelize");
 const { Technology } = require("../models");
 const PaginationHelper = require("../utils/paginationHelper");
 
@@ -10,13 +9,16 @@ class TechnologyController {
       const data = { ...req.body };
       
       // Check if technology already exists
-      const exists = await Technology.findOne({ where: { name: data?.name } });
+      const exists = await Technology.findOne({ name: data?.name });
       if (exists) {
         return res.status(400).json({
           success: false,
           message: "Technology already exists",
         });
       }
+
+      if (data.status !== undefined) data.status = data.status === 'true' || data.status === true;
+      if (data.sort_order !== undefined) data.sort_order = parseInt(data.sort_order);
 
       const tech = await Technology.create(data);
 
@@ -41,39 +43,35 @@ class TechnologyController {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
-      // Build where clause
-      const whereClause = {};
+      // Build filter
+      const filter = {};
       
       if (search) {
-        whereClause[Op.or] = [
-          { name: { [Op.iLike]: `%${search}%` } },
-        ];
+        filter.name = { $regex: search, $options: 'i' };
       }
 
       if (status !== undefined) {
-        whereClause.status = status === "true";
+        filter.status = status === 'true';
       }
 
       // Fetch data with pagination
-      const { count, rows } = await Technology.findAndCountAll({
-        where: whereClause,
-        order: [["sort_order", "ASC"]],
-        limit,
-        offset,
-      });
+      const totalItems = await Technology.countDocuments(filter);
+      const rows = await Technology.find(filter)
+        .sort({ sort_order: 1 })
+        .skip(offset)
+        .limit(limit);
 
       // Format response
-      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      const response = PaginationHelper.formatResponse(rows, totalItems, page, limit);
       res.json(response);
     } catch (error) {
       next(error);
     }
   }
+
     static async shows(req, res) {
     try {
-      const Technologies = await Technology.findAll({
-        where: {status: true}
-      });
+      const Technologies = await Technology.find({ status: true });
 
       return res.status(200).json({
         success: true,
@@ -94,7 +92,7 @@ class TechnologyController {
   static async show(req, res) {
     try {
       const { id } = req.params;
-      const tech = await Technology.findByPk(id);
+      const tech = await Technology.findById(id);
 
       if (!tech) {
         return res.status(404).json({
@@ -122,15 +120,20 @@ class TechnologyController {
     try {
       const { id } = req.params;
       const data = { ...req.body };
-      const tech = await Technology.findByPk(id);
+      let tech = await Technology.findById(id);
+      
       if (!tech) {
         return res.status(404).json({
           success: false,
           message: "Technology not found",
         });
       }
+      
+      if (data.name) tech.name = data.name;
+      if (data.status !== undefined) tech.status = data.status === 'true' || data.status === true;
+      if (data.sort_order !== undefined) tech.sort_order = parseInt(data.sort_order);
 
-      const updatedData = await tech.update(data);
+      const updatedData = await tech.save();
       
       return res.status(200).json({
         success: true,
@@ -151,7 +154,7 @@ class TechnologyController {
   static async destroy(req, res) {
     try {
       const { id } = req.params;
-      const tech = await Technology.findByPk(id);
+      const tech = await Technology.findByIdAndDelete(id);
 
       if (!tech) {
         return res.status(404).json({
@@ -159,8 +162,6 @@ class TechnologyController {
           message: "Technology not found",
         });
       }
-
-      await tech.destroy();
 
       return res.status(200).json({
         success: true,

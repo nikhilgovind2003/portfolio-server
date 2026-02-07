@@ -1,30 +1,15 @@
-const { Sequelize } = require('sequelize');
+const mongoose = require('mongoose');
 const config = require('./config');
 
-let sequelize;
-if (config.db.databaseUrl) {
-  sequelize = new Sequelize(config.db.databaseUrl, {
-    dialect: 'postgres',
-    logging: false,
-    dialectOptions: config.db.ssl
-      ? { ssl: { require: true, rejectUnauthorized: false } }
-      : {},
-  });
-} else {
-  sequelize = new Sequelize(config.db.name, config.db.user, config.db.pass, {
-    host: config.db.host,
-    port: config.db.port,
-    dialect: 'postgres',
-    logging: false,
-    dialectOptions: config.db.ssl
-      ? { ssl: { require: true, rejectUnauthorized: false } }
-      : {},
-  });
-}
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(config.db.MONGODB_URI);
 
-async function verifyDatabaseConnection() {
-  await sequelize.authenticate();
-}
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`❌ Error: ${error.message}`);
+    process.exit(1);
+  }
+};
 
-module.exports = { sequelize, verifyDatabaseConnection };
-
+module.exports = { connectDB };

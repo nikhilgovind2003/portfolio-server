@@ -1,37 +1,24 @@
-const { DataTypes } = require("sequelize");
+const mongoose = require('mongoose');
 
-module.exports = (sequelize) => {
-  const Contact = sequelize.define(
-    "Contact",
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          isEmail: true,
-        },
-      },
+const contactSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please fill a valid email address',
+    ],
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+}, {
+  timestamps: true,
+});
 
-      message: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: "contacts",
-      timestamps: true,
-      underscored: true,
-    }
-  );
-
-  return Contact;
-};
+module.exports = mongoose.model('Contact', contactSchema);

@@ -1,15 +1,13 @@
-const models = require('../models');
+const { User, Projects, Technology, Skills } = require('../models');
 
 class DashboardController {
     static async show(req,res,next) {
         try {
-            
-
             // Find counts
-            const userCount = await models.User.count();
-            const projectCount = await models.Projects.count();
-            const techCount = await models.Technology.count();
-            const skillCount = await models.Skills.count();
+            const userCount = await User.countDocuments();
+            const projectCount = await Projects.countDocuments();
+            const techCount = await Technology.countDocuments();
+            const skillCount = await Skills.countDocuments();
             
             // Send response
             res.json({
@@ -27,6 +25,5 @@ class DashboardController {
     }
 
 }
-
 
 module.exports =  DashboardController

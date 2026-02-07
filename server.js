@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const config = require("./config");
-const { sequelize, User } = require("./models");
-const { verifyDatabaseConnection } = require("./db");
+const { connectDB } = require("./db");
 const routes = require("./routes/index.js");
 const logger = require("./config/logger.js");
 const handleError = require("./middlewares/handleErrorMiddleware.js");
@@ -39,17 +38,17 @@ app.use(handleError);
 
 async function bootstrap() {
   try {
-    await verifyDatabaseConnection();
-    
-    await sequelize.sync({ alter: true });
+    await connectDB();
     await seedCmsData();
+    
     logger.info("server synced");
     const port = config.port;
-    app.listen(port, () => {
-      logger.info(`Server listening`);
+
+    app.listen(port ? port : 4000, () => {
+      logger.info(`Server listening on port ${port ? port : 4000}`);
     });
   } catch (error) {
-    logger.error("Failed to start server:", error);
+    console.error("Failed to start server:", error.message);
     process.exit(1);
   }
 }

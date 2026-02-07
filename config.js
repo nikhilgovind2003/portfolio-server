@@ -1,18 +1,12 @@
 require('dotenv').config();
 
 
-console.log("DATABASE_URL from env:", process.env.DATABASE_URL);
+console.log("DATABASE_URL from env:", process.env.MONGODB_URI);
 
 const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   db: {
-    databaseUrl: process.env.DATABASE_URL,
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'portfolio_db',
-    user: process.env.DB_USER || 'postgres',
-    pass: process.env.DB_PASS || 'postgres',
-    ssl: (process.env.DB_SSL || 'false').toLowerCase() === 'true',
+    MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio',
   },
 };
 

@@ -18,20 +18,20 @@ function loadRoutes(dirPath, baseRoute = '') {
 
         const subRouter = loadRoutes(fullPath, newBaseRoute);
         router.use(`/${dirName}`, subRouter); // Mount subdir
-        console.log(`✅ Mounted sub-router: /${dirName} -> /api/${newBaseRoute}`);
+        // console.log(`✅ Mounted sub-router: /${dirName} -> /api/${newBaseRoute}`);
       } else if (file !== 'index.js' && file.endsWith('.js')) {
         const routeName = path.basename(file, '.js')
           .replace(/([a-z])([A-Z])/g, '$1-$2')
           .toLowerCase();
 
         const routePath = `/${routeName}`; // <--- Avoid using baseRoute again here
-        console.log(`🔍 Processing file: ${fullPath}, routePath: ${baseRoute}${routePath}`);
+        // console.log(`🔍 Processing file: ${fullPath}, routePath: ${baseRoute}${routePath}`);
 
         try {
           const routeModule = require(fullPath);
           if (typeof routeModule === 'function' || routeModule instanceof express.Router) {
             router.use(routePath, routeModule);
-            console.log(`✅ Loaded route: /api${baseRoute}${routePath}`);
+            // console.log(`✅ Loaded route: /api${baseRoute}${routePath}`);
           } else {
             console.error(`❌ Invalid route module at ${fullPath}: Not a router or middleware function`);
           }

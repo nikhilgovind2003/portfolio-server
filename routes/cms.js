@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const CmsController = require("../controller/cms.js");
-const auth = require("../middlewares/authMiddleware.js")
+const auth = require("../middlewares/authMiddleware.js");
 const {
   updateCmsRules,
   validateCms,
@@ -8,24 +8,16 @@ const {
 
 const { uploadFields } = require("../middlewares/multerMiddleware.js");
 
+const uploads = uploadFields("cms", [
+  { name: "media_path", maxCount: 1 },
+  { name: "resume", maxCount: 1 },
+]);
 
-const uploads =   uploadFields("cms", [
-    { name: "media_path", maxCount: 1 },
-    { name: "resume", maxCount: 1 },
-  ]);
-
-
-  
 router.get("/", CmsController.index);
 
+router.post("/",updateCmsRules, validateCms, uploads, CmsController.store);
+
 // Update CMS route
-router.put(
-  "/:id",
-  updateCmsRules,
-  validateCms,
-  uploads,
-  CmsController.update
-);
+router.put("/:id", uploads, updateCmsRules, validateCms, CmsController.update);
 
 module.exports = router;
-

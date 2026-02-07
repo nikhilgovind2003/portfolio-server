@@ -1,41 +1,25 @@
-const { DataTypes } = require("sequelize");
+const mongoose = require('mongoose');
 
-module.exports = (sequelize) => {
-  const Technology = sequelize.define(
-    "Technology",
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true,
-      },
-      sort_order: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-      },
-    },
-    {
-      tableName: "technologies",
-      timestamps: true,
-    }
-  );
+// Define schema
+const technologySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: Boolean,
+    default: true,
+  },
+  sort_order: {
+    type: Number,
+    default: 0,
+  },
+  projects_list: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Projects',
+  }]
+}, {
+  timestamps: true,
+});
 
-  Technology.associate = (models) => {
-    Technology.belongsToMany(models.Projects, {
-      through: "project_technology",
-      foreignKey: "technology_id",
-      otherKey: "project_id",
-      as: "projects_list",
-    });
-  };
-
-  return Technology;
-};
+module.exports = mongoose.model('Technology', technologySchema);

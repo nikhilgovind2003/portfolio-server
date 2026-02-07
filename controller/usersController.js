@@ -5,31 +5,26 @@ class UsersController {
  static async getAll(req, res, next) {
     try {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
-      const { search, status } = req.query;
+      const { search } = req.query;
 
-      // Build where clause
-      const whereClause = {};
+      // Build filter
+      const filter = {};
       
       if (search) {
-        whereClause[Op.or] = [
-          { name: { [Op.iLike]: `%${search}%` } },
-          { email: { [Op.iLike]: `%${search}%` } }
+        filter.$or = [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
         ];
       }
 
-      if (status !== undefined) {
-        whereClause.status = status === "true";
-      }
-
       // Fetch data with pagination
-      const { count, rows } = await User.findAndCountAll({
-        where: whereClause,
-        limit,
-        offset,
-      });
+      const totalItems = await User.countDocuments(filter);
+      const rows = await User.find(filter)
+        .skip(offset)
+        .limit(limit);
 
       // Format response
-      const response = PaginationHelper.formatResponse(rows, count, page, limit);
+      const response = PaginationHelper.formatResponse(rows, totalItems, page, limit);
       res.json(response);
     } catch (error) {
       next(error);
@@ -39,7 +34,7 @@ class UsersController {
   static async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const user = await User.findByPk(id);
+      const user = await User.findById(id);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -56,7 +51,7 @@ class UsersController {
       const { name, email } = req.body;
 
       // Check if user with email already exists
-      const existingUser = await User.findOne({ where: { email } });
+      const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ message: "User with this email already exists" });
       }
@@ -73,20 +68,23 @@ class UsersController {
       const { id } = req.params;
       const { name, email } = req.body;
 
-      const user = await User.findByPk(id);
+      let user = await User.findById(id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       // Check if email is being changed and if it already exists
       if (email && email !== user.email) {
-        const existingUser = await User.findOne({ where: { email } });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
           return res.status(400).json({ message: "User with this email already exists" });
         }
       }
 
-      await user.update({ name: name || user.name, email: email || user.email });
+      if (name) user.name = name;
+      if (email) user.email = email;
+      
+      await user.save();
       res.json(user);
     } catch (error) {
       next(error);
@@ -96,13 +94,12 @@ class UsersController {
   static async delete(req, res, next) {
     try {
       const { id } = req.params;
-      const user = await User.findByPk(id);
+      const user = await User.findByIdAndDelete(id);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      await user.destroy();
       res.status(200).json({ 
         success: true, 
         message: "User deleted successfully" 
