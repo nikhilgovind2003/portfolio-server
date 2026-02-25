@@ -14,6 +14,7 @@ const updateCmsRules = [
   body("about_title").isString().optional().withMessage("About title must be a string"),
   body("about_description").isString().optional().withMessage("About description must be a string"),
   body("contact_title").isString().optional().withMessage("Contact title must be a string"),
+  body("experience_title").isString().optional().withMessage("Experience title must be a string"),
 ];
 
 // Middleware to check validation results

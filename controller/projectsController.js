@@ -4,10 +4,19 @@ const logger = require("../config/logger");
 
 const { Projects, Technology } = require("../models");
 const PaginationHelper = require("../utils/paginationHelper");
+const { uploadToCloudinary, deleteFromCloudinary, getPublicIdFromUrl } = require("../utils/cloudinary");
 
 class ProjectsController {
   static async deleteFile(filePath) {
     if (!filePath) return false;
+    // Check if it's a Cloudinary URL
+    if (filePath.includes("cloudinary.com")) {
+      const publicId = getPublicIdFromUrl(filePath);
+      if (publicId) {
+        await deleteFromCloudinary(publicId);
+        return true;
+      }
+    }
 
     try {
       const absolutePath = path.join(
@@ -35,7 +44,7 @@ class ProjectsController {
 
       // Build filter
       const filter = {};
-      
+
       if (search) {
         filter.$or = [
           { title: { $regex: search, $options: 'i' } },
@@ -92,7 +101,9 @@ class ProjectsController {
         sort_order,
       } = req.body;
 
-      const media_path = req.files?.media_path?.[0]?.relativePath ?? null;
+      const localPath = req.files?.media_path?.[0]?.path ?? null;
+
+      const result = await uploadToCloudinary(localPath, "projects");
 
       // Convert technology input to array of IDs
       let techArray = [];
@@ -102,11 +113,13 @@ class ProjectsController {
           : JSON.parse(technologies);
       }
 
+
+
       // Create project
       const newProject = await Projects.create({
         title,
         description,
-        media_path,
+        media_path: result.url,
         media_alt,
         project_link,
         github_link,
@@ -152,8 +165,9 @@ class ProjectsController {
       // FILE HANDLING
       if (req.files?.media_path) {
         const oldFile = project.media_path;
-        project.media_path = req.files.media_path[0].relativePath;
-
+        const localPath = req.files.media_path[0].path;
+        const result = await uploadToCloudinary(localPath, "projects");
+        project.media_path = result.url;
         if (oldFile) await ProjectsController.deleteFile(oldFile);
       }
 
@@ -163,13 +177,13 @@ class ProjectsController {
       if (media_alt) project.media_alt = media_alt;
       if (github_link) project.github_link = github_link;
       if (project_link) project.project_link = project_link;
-      
+
       if (status !== undefined) {
-         project.status = status === 'true' || status === true;
+        project.status = status === 'true' || status === true;
       }
 
       if (sort_order !== undefined) {
-          project.sort_order = parseInt(sort_order);
+        project.sort_order = parseInt(sort_order);
       }
 
       // UPDATE TECHNOLOGIES
@@ -177,10 +191,10 @@ class ProjectsController {
         const techArray = Array.isArray(technologies)
           ? technologies
           : JSON.parse(technologies);
-        
+
         project.technologies_list = techArray;
       }
-      
+
       await project.save();
 
       // Return updated project with technologies

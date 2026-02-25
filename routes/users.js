@@ -14,5 +14,8 @@ router.get("/:id", UsersController.getById);
 
 // Create a new user
 router.post("/", createUserValidation, UsersController.create);
+ 
+// Update a user
+router.put("/:id", UsersController.update);
 
 module.exports = router;

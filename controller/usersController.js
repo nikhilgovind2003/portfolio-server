@@ -83,6 +83,8 @@ class UsersController {
 
       if (name) user.name = name;
       if (email) user.email = email;
+      if (req.body.bio !== undefined) user.bio = req.body.bio;
+      if (req.body.avatar !== undefined) user.avatar = req.body.avatar;
       
       await user.save();
       res.json(user);

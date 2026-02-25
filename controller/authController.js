@@ -64,6 +64,28 @@ class AuthController {
       next(error);
     }
   }
+
+  static async updateProfile(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { userName, email, bio, avatar } = req.body;
+
+      const user = await Auth.findById(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (userName) user.userName = userName;
+      if (email) user.email = email;
+      if (bio !== undefined) user.bio = bio;
+      if (avatar !== undefined) user.avatar = avatar;
+
+      await user.save();
+      res.json(user);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = AuthController;

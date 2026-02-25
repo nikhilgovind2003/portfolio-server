@@ -1,4 +1,5 @@
 const { Cms } = require("../models");
+const { uploadToCloudinary } = require("../utils/cloudinary");
 
 class CmsController {
   static async index(req, res, next) {
@@ -23,9 +24,9 @@ class CmsController {
         const mediaFiles = req.files?.media_path || [];
         const resumeFiles = req.files?.resume || [];
         const newFilePath =
-          mediaFiles.length > 0 ? mediaFiles[0].relativePath : null;
+          mediaFiles.length > 0 ? mediaFiles[0].path : null;
         const resumePath =
-          resumeFiles.length > 0 ? resumeFiles[0].relativePath : null;
+          resumeFiles.length > 0 ? resumeFiles[0].path : null;
         const cmsItem = await Cms.create({
           super_title: req.body.super_title,
           title: req.body.title,
@@ -40,6 +41,7 @@ class CmsController {
           about_title: req.body.about_title,
           about_description: req.body.about_description,
           contact_title: req.body.contact_title,
+          experience_title: req.body.experience_title,
           resume: resumePath,
         });
         res.status(201).json(cmsItem);
@@ -61,8 +63,9 @@ class CmsController {
 
       // Get the first media file path (or keep existing)
       const newFilePath =
-        mediaFiles.length > 0 ? mediaFiles[0].relativePath : cmsItem.media_path;
+        mediaFiles.length > 0 ? mediaFiles[0].path : cmsItem.media_path;
 
+      const profilePhoto = await uploadToCloudinary(newFilePath, 'cms');
       // Get the resume file path (or keep existing)
       const resumePath =
         resumeFiles.length > 0 ? resumeFiles[0].relativePath : cmsItem.resume;
@@ -81,6 +84,7 @@ class CmsController {
         "about_title",
         "about_description",
         "contact_title",
+        "experience_title",
       ];
 
       updateFields.forEach((field) => {
@@ -89,7 +93,7 @@ class CmsController {
         }
       });
 
-      cmsItem.media_path = newFilePath;
+      cmsItem.media_path = profilePhoto.secure_url;
       cmsItem.resume = resumePath;
 
       await cmsItem.save();

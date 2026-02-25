@@ -5,6 +5,7 @@ const Skills = require('./skills');
 const Contact = require('./contact');
 const Technology = require('./technology');
 const Auth = require("./auth");
+const Experience = require("./experience");
 
 const models = {
   User,
@@ -14,6 +15,7 @@ const models = {
   Contact,
   Technology,
   Auth,
+  Experience,
 };
 
 module.exports = { ...models };

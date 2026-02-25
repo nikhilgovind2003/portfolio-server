@@ -3,11 +3,22 @@ const path = require("path");
 const PaginationHelper = require("../utils/paginationHelper");
 const fs = require("fs").promises;
 const logger = require("../config/logger");
+const { uploadToCloudinary, deleteFromCloudinary, getPublicIdFromUrl } = require("../utils/cloudinary");
 
 class SkillsController {
   static async deleteFile(filePath) {
     if (!filePath) return false;
     try {
+      // Check if it's a Cloudinary URL
+      if (filePath.includes("cloudinary.com")) {
+        const publicId = getPublicIdFromUrl(filePath);
+        if (publicId) {
+          await deleteFromCloudinary(publicId);
+          return true;
+        }
+      }
+
+      // Fallback for local files (if any remain)
       const absolutePath = path.join(
         __dirname,
         "..",
@@ -16,25 +27,24 @@ class SkillsController {
       );
 
       await fs.unlink(absolutePath);
-
       logger.info(`Deleted file: ${absolutePath}`);
-      return true; // ✅ success
+      return true;
     } catch (error) {
       if (error.code !== "ENOENT") {
         logger.error(`Failed to delete file ${filePath}: ${error.message}`);
       }
-      return false; // ✅ failed but handled
+      return false;
     }
   }
 
- static async getAll(req, res, next) {
+  static async getAll(req, res, next) {
     try {
       const { page, limit, offset } = PaginationHelper.getPaginationParams(req);
       const { search, status } = req.query;
 
       // Build filter
       const filter = {};
-      
+
       if (search) {
         filter.skills = { $regex: search, $options: 'i' };
       }
@@ -60,20 +70,29 @@ class SkillsController {
   static async create(req, res, next) {
     try {
       const dataModel = req.body;
-      const media_path = req.files?.media_path?.[0]?.relativePath ?? null;
+      let media_path = null;
+
+      // Check if file was uploaded by multer
+      if (req.files?.media_path?.[0]) {
+        const localPath = req.files.media_path[0].path;
+        // Upload to Cloudinary
+        const result = await uploadToCloudinary(localPath, 'skills');
+        media_path = result.secure_url;
+      }
 
       const existingSkil = await Skills.findOne({
         skills: { $regex: new RegExp(`^${dataModel.skills}$`, 'i') }
       });
 
       if (existingSkil) {
+        // If skill exists and we uploaded a file, we should probably delete it from Cloudinary
+        if (media_path) {
+          const publicId = getPublicIdFromUrl(media_path);
+          if (publicId) await deleteFromCloudinary(publicId);
+        }
         return res.status(400).json({ message: "Skill already exists" });
       }
 
-      // Mongoose doesn't need to specify media_path if it's in ...dataModel, but we separated it in original code logic?
-      // Mongoose create takes object.
-      
-      // Ensure specific fields are boolean/number if passed as string from multipart form data
       if (dataModel.status !== undefined) dataModel.status = dataModel.status === 'true' || dataModel.status === true;
       if (dataModel.sort_order !== undefined) dataModel.sort_order = parseInt(dataModel.sort_order);
 
@@ -109,20 +128,23 @@ class SkillsController {
       if (!skill) {
         return res.status(404).json({ message: "Skill not found" });
       }
-      if (req.files) {
+      if (req.files?.media_path?.[0]) {
         // Save old path before overwriting
         const oldFilePath = skill.media_path;
 
-        // Set new file path
-        if (req.files.media_path) {
-           skill.media_path = req.files.media_path[0].relativePath;
-           // Delete old file
-            if (oldFilePath) {
-              await SkillsController.deleteFile(oldFilePath);
-            }
+        // Upload new file to Cloudinary
+        const localPath = req.files.media_path[0].path;
+        const result = await uploadToCloudinary(localPath, 'skills');
+
+        // Set new file path (URL)
+        skill.media_path = result.secure_url;
+
+        // Delete old file (Cloudinary or local)
+        if (oldFilePath) {
+          await SkillsController.deleteFile(oldFilePath);
         }
       }
-      
+
       // Update fields
       if (data.skills) skill.skills = data.skills;
       if (data.media_alt) skill.media_alt = data.media_alt;
@@ -144,11 +166,11 @@ class SkillsController {
       if (!skill) {
         return res.status(404).json({ message: "Skill not found" });
       }
-       // Remove file if exists
+      // Remove file if exists
       if (skill.media_path) {
         await SkillsController.deleteFile(skill.media_path);
       }
-      
+
       await Skills.findByIdAndDelete(id);
       res.status(200).json({
         success: true,

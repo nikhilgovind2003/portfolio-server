@@ -28,8 +28,8 @@ const updateSkillValidation = [
   param('id')
     .notEmpty()
     .withMessage('Skill ID is required')
-    .isInt()
-    .withMessage('Skill ID must be an integer'),
+    .isMongoId()
+    .withMessage('Skill ID must be a valid Mongo ID'),
 ];
 
 module.exports = {

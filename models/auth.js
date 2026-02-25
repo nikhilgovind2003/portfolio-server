@@ -18,6 +18,13 @@ const authSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  bio: {
+    type: String,
+    maxLength: 500,
+  },
+  avatar: {
+    type: String,
+  },
 }, {
   timestamps: true,
 });

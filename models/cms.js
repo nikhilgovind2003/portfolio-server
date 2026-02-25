@@ -56,6 +56,10 @@ const cmsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  experience_title: {
+    type: String,
+    default: 'Work Experience',
+  },
 }, {
   timestamps: true,
 });

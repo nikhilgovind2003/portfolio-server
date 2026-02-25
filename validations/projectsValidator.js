@@ -20,9 +20,9 @@ const validateTechnologies = body("technologies")
       throw new Error("Technologies must be an array");
     }
 
-    // Each element must be integer
-    if (!techArray.every((id) => Number.isInteger(id))) {
-      throw new Error("All technology IDs must be integers");
+    // Each element must be a valid Mongo ID
+    if (!techArray.every((id) => /^[0-9a-fA-F]{24}$/.test(id))) {
+      throw new Error("All technology IDs must be valid Mongo IDs");
     }
 
     return true;
@@ -77,8 +77,8 @@ const updateProjectValidation = [
   param("id")
     .notEmpty()
     .withMessage("Project ID is required")
-    .isInt()
-    .withMessage("Project ID must be an integer"),
+    .isMongoId()
+    .withMessage("Project ID must be a valid Mongo ID"),
 
   body("title")
     .optional()
@@ -120,8 +120,8 @@ const projectSkillValidation = [
   param("id")
     .notEmpty()
     .withMessage("Project ID is required")
-    .isInt()
-    .withMessage("Project ID must be an integer"),
+    .isMongoId()
+    .withMessage("Project ID must be a valid Mongo ID"),
 ];
 
 module.exports = {
