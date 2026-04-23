@@ -71,14 +71,9 @@ class SkillsController {
     try {
       const dataModel = req.body;
       let media_path = null;
+      dataModel.media_path = await uploadToCloudinary(req, media_path, 'skills');
 
-      // Check if file was uploaded by multer
-      if (req.files?.media_path?.[0]) {
-        const localPath = req.files.media_path[0].path;
-        // Upload to Cloudinary
-        const result = await uploadToCloudinary(localPath, 'skills');
-        media_path = result.secure_url;
-      }
+      console.log("datamodel path ", dataModel.media_path)
 
       const existingSkil = await Skills.findOne({
         skills: { $regex: new RegExp(`^${dataModel.skills}$`, 'i') }
@@ -96,10 +91,11 @@ class SkillsController {
       if (dataModel.status !== undefined) dataModel.status = dataModel.status === 'true' || dataModel.status === true;
       if (dataModel.sort_order !== undefined) dataModel.sort_order = parseInt(dataModel.sort_order);
 
-      const newSkill = await Skills.create({ ...dataModel, media_path });
+      const newSkill = await Skills.create({ dataModel });
       res.status(201).json(newSkill);
     } catch (error) {
       next(error);
+      console.log(error.message)
     }
   }
 
@@ -132,12 +128,7 @@ class SkillsController {
         // Save old path before overwriting
         const oldFilePath = skill.media_path;
 
-        // Upload new file to Cloudinary
-        const localPath = req.files.media_path[0].path;
-        const result = await uploadToCloudinary(localPath, 'skills');
-
-        // Set new file path (URL)
-        skill.media_path = result.secure_url;
+        skill.media_path = await uploadToCloudinary(req, media_path, 'skills');
 
         // Delete old file (Cloudinary or local)
         if (oldFilePath) {

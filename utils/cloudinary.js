@@ -2,14 +2,11 @@ const cloudinary = require('../config/cloudinary');
 const fs = require('fs').promises;
 const logger = require('../config/logger');
 
-/**
- * Uploads a file to cloudinary
- * @param {string} filePath - Local path to the file
- * @param {string} folder - Cloudinary folder name
- * @returns {Promise<object>} - Cloudinary upload result
- */
-const uploadToCloudinary = async (filePath, folder = 'portfolio') => {
+// Uploads a file to cloudinary
+const uploadToCloudinary = async (req, fileName, folder = 'portfolio') => {
     try {
+        const filePath = req.files.fileName[0].path;
+
         const result = await cloudinary.uploader.upload(filePath, {
             folder: folder,
             resource_type: 'auto'
@@ -23,18 +20,15 @@ const uploadToCloudinary = async (filePath, folder = 'portfolio') => {
             logger.error(`Failed to delete local file ${filePath}: ${unlinkError.message}`);
         }
 
-        return result;
+        return result.secure_url;
     } catch (error) {
         logger.error(`Cloudinary upload failed: ${error.message}`);
         throw error;
     }
 };
 
-/**
- * Deletes a file from cloudinary
- * @param {string} publicId - Cloudinary public ID
- * @returns {Promise<object>} - Cloudinary deletion result
- */
+
+//  Deletes a file from cloudinary
 const deleteFromCloudinary = async (publicId) => {
     try {
         const result = await cloudinary.uploader.destroy(publicId);
@@ -46,11 +40,7 @@ const deleteFromCloudinary = async (publicId) => {
     }
 };
 
-/**
- * Extracts public ID from a Cloudinary URL
- * @param {string} url - Cloudinary URL
- * @returns {string|null} - Public ID or null
- */
+// Extracts public ID from a Cloudinary URL
 const getPublicIdFromUrl = (url) => {
     if (!url) return null;
     try {
