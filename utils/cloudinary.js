@@ -2,11 +2,9 @@ const cloudinary = require('../config/cloudinary');
 const fs = require('fs').promises;
 const logger = require('../config/logger');
 
-// Uploads a file to cloudinary
-const uploadToCloudinary = async (req, fileName, folder = 'portfolio') => {
+// Uploads a file to cloudinary given a local file path
+const uploadToCloudinary = async (filePath, folder = 'portfolio') => {
     try {
-        const filePath = req.files.fileName[0].path;
-
         const result = await cloudinary.uploader.upload(filePath, {
             folder: folder,
             resource_type: 'auto'
@@ -20,7 +18,7 @@ const uploadToCloudinary = async (req, fileName, folder = 'portfolio') => {
             logger.error(`Failed to delete local file ${filePath}: ${unlinkError.message}`);
         }
 
-        return result.secure_url;
+        return result;
     } catch (error) {
         logger.error(`Cloudinary upload failed: ${error.message}`);
         throw error;

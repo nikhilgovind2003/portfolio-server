@@ -61,14 +61,19 @@ class CmsController {
       const mediaFiles = req.files?.media_path || [];
       const resumeFiles = req.files?.resume || [];
 
-      // Get the first media file path (or keep existing)
-      const newFilePath =
-        mediaFiles.length > 0 ? mediaFiles[0].path : cmsItem.media_path;
+      // Upload profile image to Cloudinary only if a new one was provided
+      let mediaPath = cmsItem.media_path;
+      if (mediaFiles.length > 0) {
+        const uploadedImage = await uploadToCloudinary(mediaFiles[0].path, 'cms');
+        mediaPath = uploadedImage.secure_url;
+      }
 
-      const profilePhoto = await uploadToCloudinary(newFilePath, 'cms');
-      // Get the resume file path (or keep existing)
-      const resumePath =
-        resumeFiles.length > 0 ? resumeFiles[0].relativePath : cmsItem.resume;
+      // Upload resume to Cloudinary only if a new one was provided
+      let resumePath = cmsItem.resume;
+      if (resumeFiles.length > 0) {
+        const uploadedResume = await uploadToCloudinary(resumeFiles[0].path, 'cms/resumes');
+        resumePath = uploadedResume.secure_url;
+      }
 
       // Update fields dynamically
       const updateFields = [
@@ -93,7 +98,7 @@ class CmsController {
         }
       });
 
-      cmsItem.media_path = profilePhoto.secure_url;
+      cmsItem.media_path = mediaPath;
       cmsItem.resume = resumePath;
 
       await cmsItem.save();
