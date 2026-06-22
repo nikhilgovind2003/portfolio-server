@@ -12,7 +12,7 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin:
-       ["https://nikhil-govind-portfolio-admin.netlify.app", "http://localhost:3000", "http://localhost:8080", "https://nikhil-govind.vercel.app/"],
+       ["https://nikhil-govind-portfolio-admin.netlify.app", "http://localhost:3000", "http://localhost:8080", "https://nikhil-govind.vercel.app"],
   credentials: true,
   optionsSuccessStatus: 200,
 };
